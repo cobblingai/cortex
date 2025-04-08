@@ -3,6 +3,8 @@ import path, { dirname } from "node:path";
 // import started from "electron-squirrel-startup";
 import { fileURLToPath } from "node:url";
 
+const inDevelopment = process.env.NODE_ENV === "development";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -17,6 +19,9 @@ const createWindow = () => {
     width: 800,
     height: 600,
     webPreferences: {
+      devTools: inDevelopment,
+      // contextIsolation: true,
+      nodeIntegration: true,
       preload: path.join(__dirname, "preload.js"),
     },
   });
@@ -31,7 +36,9 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  if (inDevelopment) {
+    mainWindow.webContents.openDevTools();
+  }
 };
 
 // This method will be called when Electron has finished

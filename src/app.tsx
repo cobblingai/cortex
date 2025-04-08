@@ -1,12 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import {
+  RouterProvider,
+  createMemoryHistory,
+  createRouter,
+} from "@tanstack/react-router";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
-
-// Create a new router instance
-const router = createRouter({ routeTree });
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {
@@ -14,6 +15,13 @@ declare module "@tanstack/react-router" {
     router: typeof router;
   }
 }
+
+const history = createMemoryHistory({
+  initialEntries: ["/"],
+});
+
+// Create a new router instance
+const router = createRouter({ routeTree, history });
 
 // Render the app
 const rootElement = document.getElementById("app")!;
