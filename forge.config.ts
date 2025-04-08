@@ -13,6 +13,7 @@ const config: ForgeConfig = {
     executableName: pkg.name,
     name: pkg.productName,
     asar: true,
+    extraResource: [".vite/build/client.js.mjs", ".vite/build/server.js.mjs"],
   },
   rebuildConfig: {},
   makers: [
@@ -36,6 +37,14 @@ const config: ForgeConfig = {
           entry: "src/preload.ts",
           config: "vite.preload.config.ts",
           target: "preload",
+        },
+        {
+          entry: "src/mcp/client.ts",
+          config: "vite.mcp.client.config.ts",
+        },
+        {
+          entry: "src/mcp/server.ts",
+          config: "vite.mcp.server.config.ts",
         },
       ],
       renderer: [

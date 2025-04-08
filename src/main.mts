@@ -1,27 +1,153 @@
-import { app, BrowserWindow } from "electron";
+import {
+  app,
+  BrowserWindow,
+  utilityProcess,
+  UtilityProcess,
+  ipcMain,
+} from "electron";
 import path, { dirname } from "node:path";
-// import started from "electron-squirrel-startup";
+import started from "electron-squirrel-startup";
 import { fileURLToPath } from "node:url";
+import type { MCPMessage } from "@/types/mcp.js";
 
-const inDevelopment = process.env.NODE_ENV === "development";
+const inDevelopment = !app.isPackaged;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// MCP Process Management
+let mcpClientProcess: UtilityProcess | null = null;
+let mcpServerProcess: UtilityProcess | null = null;
+let mainWindow: BrowserWindow | null = null;
+let restartAttempts = 0;
+const MAX_RESTART_ATTEMPTS = 3;
+
+const startMCPProcesses = () => {
+  if (restartAttempts >= MAX_RESTART_ATTEMPTS) {
+    console.error("Maximum restart attempts reached. Stopping MCP processes.");
+    return;
+  }
+
+  try {
+    let mcpClientPath = path.join(__dirname, "client.js");
+    let mcpServerPath = path.join(__dirname, "server.js");
+    if (app.isPackaged) {
+      mcpClientPath = path.join(process.resourcesPath, "client.js.mjs");
+      mcpServerPath = path.join(process.resourcesPath, "server.js.mjs");
+    }
+
+    // Start MCP Client Process
+    mcpClientProcess = utilityProcess.fork(mcpClientPath, [], {
+      stdio: "pipe",
+    });
+
+    // Start MCP Server Process
+    mcpServerProcess = utilityProcess.fork(mcpServerPath, [], {
+      stdio: "pipe",
+    });
+
+    // Add error handlers
+    mcpClientProcess.on("error", (error) => {
+      console.error("MCP Client Process error:", error);
+      mcpClientProcess = null;
+      restartAttempts++;
+    });
+
+    mcpServerProcess.on("error", (error) => {
+      console.error("MCP Server Process error:", error);
+      mcpServerProcess = null;
+      restartAttempts++;
+    });
+
+    // Handle MCP Client Process Events
+    mcpClientProcess.on("message", (message: MCPMessage) => {
+      console.log("MCP Client Message:", message);
+      // Forward messages to renderer or handle as needed
+      mainWindow?.webContents.send("mcp-message-reply", message);
+    });
+
+    mcpClientProcess.on("exit", (code: number) => {
+      console.log("MCP Client Process exited with code:", code);
+      mcpClientProcess = null;
+      // Attempt to restart if not a clean exit
+      if (code !== 0) {
+        restartAttempts++;
+        console.log(
+          "MCP Client Process error buffer:",
+          errorBuffer.toString("utf8")
+        );
+        setTimeout(startMCPProcesses, 1000);
+      }
+    });
+
+    // Handle MCP Server Process Events
+    mcpServerProcess.on("message", (message: MCPMessage) => {
+      console.log("MCP Server Message:", message);
+      // Forward messages to renderer or handle as needed
+    });
+
+    mcpServerProcess.on("exit", (code: number) => {
+      console.log("MCP Server Process exited with code:", code);
+      mcpServerProcess = null;
+      // Attempt to restart if not a clean exit
+      if (code !== 0) {
+        restartAttempts++;
+        setTimeout(startMCPProcesses, 1000);
+      }
+    });
+
+    // Handle process spawn events
+    mcpClientProcess.on("spawn", () => {
+      console.log("MCP Client Process spawned successfully");
+      restartAttempts = 0;
+    });
+
+    mcpServerProcess.on("spawn", () => {
+      console.log("MCP Server Process spawned successfully");
+      restartAttempts = 0;
+    });
+
+    let errorBuffer = Buffer.from([]);
+    mcpClientProcess.stderr?.on("data", (data) => {
+      errorBuffer = Buffer.concat([errorBuffer, data]);
+      // console.error("MCP Client Process stderr:", data);
+    });
+
+    mcpClientProcess.stdout?.on("data", (data) => {
+      const buffer = Buffer.concat([errorBuffer, data]);
+      console.log("MCP Client Process stdout:", buffer.toString("utf8"));
+    });
+  } catch (error) {
+    console.error("Error starting MCP processes:", error);
+    restartAttempts++;
+  }
+};
+
+const stopMCPProcesses = () => {
+  if (mcpClientProcess) {
+    mcpClientProcess.kill();
+    mcpClientProcess = null;
+  }
+  if (mcpServerProcess) {
+    mcpServerProcess.kill();
+    mcpServerProcess = null;
+  }
+};
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-// if (started) {
-//   app.quit();
-// }
+if (started) {
+  app.quit();
+}
 
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      devTools: inDevelopment,
+      // devTools: inDevelopment,
       // contextIsolation: true,
-      nodeIntegration: true,
+      // nodeIntegration: true,
       preload: path.join(__dirname, "preload.js"),
     },
   });
@@ -44,13 +170,17 @@ const createWindow = () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on("ready", createWindow);
+app.on("ready", () => {
+  createWindow();
+  startMCPProcesses();
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
+    stopMCPProcesses();
     app.quit();
   }
 });
@@ -60,6 +190,18 @@ app.on("activate", () => {
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  }
+});
+
+// Clean up MCP processes before quitting
+app.on("before-quit", () => {
+  stopMCPProcesses();
+});
+
+// Handle IPC messages from renderer
+ipcMain.on("mcp-message", (event, message: MCPMessage) => {
+  if (mcpClientProcess) {
+    mcpClientProcess.postMessage(message);
   }
 });
 

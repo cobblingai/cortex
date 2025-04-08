@@ -22,9 +22,6 @@ function Index() {
   };
 
   return (
-    // <div className="p-2">
-    //   <h3>Welcome Home!</h3>
-    // </div>
     <div className="flex h-screen bg-background">
       {/* Main file browser */}
       <FileExplorer

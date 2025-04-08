@@ -3,3 +3,13 @@
 // whether you're running in development or production).
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
+
+interface Window {
+  electron: {
+    ipcRenderer: {
+      send(channel: string, data: any): void;
+      on(channel: string, func: (...args: any[]) => void): void;
+      removeListener(channel: string, func: (...args: any[]) => void): void;
+    };
+  };
+}

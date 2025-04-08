@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ChatMessage } from "@/types/file-system";
+import type { MCPMessage } from "@/types/mcp";
 
 interface AIAssistantPanelProps {
   isOpen: boolean;
@@ -19,33 +20,49 @@ export function AIAssistantPanel({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState("");
 
+  useEffect(() => {
+    const handleMCPResponse = (message: MCPMessage) => {
+      if (message.type === "data") {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: message.payload.message },
+        ]);
+      }
+    };
+
+    window.electron.ipcRenderer.on("mcp-message-reply", handleMCPResponse);
+
+    return () => {
+      window.electron.ipcRenderer.removeListener(
+        "mcp-message-reply",
+        handleMCPResponse
+      );
+    };
+  }, []);
+
+  const sendToMCP = (message: string) => {
+    const mcpMessage: MCPMessage = {
+      id: crypto.randomUUID(),
+      type: "data",
+      payload: {
+        message,
+        timestamp: Date.now(),
+      },
+      timestamp: Date.now(),
+    };
+
+    // Send message to MCP client process
+    window.electron.ipcRenderer.send("mcp-message", mcpMessage);
+  };
+
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
 
     // Add user message
     setMessages([...messages, { role: "user", content: inputMessage }]);
 
-    // Simulate LLM response
-    setTimeout(() => {
-      let response = "I'll help you organize those files.";
-
-      // Simple response logic based on user input
-      if (inputMessage.toLowerCase().includes("create folder")) {
-        response =
-          "I can help you create a new folder. What would you like to name it?";
-      } else if (inputMessage.toLowerCase().includes("move")) {
-        response =
-          "I can help you move files. Which files would you like to move and where?";
-      } else if (inputMessage.toLowerCase().includes("organize")) {
-        response =
-          "I can suggest an organization system based on your files. Would you like me to group by file type, date, or project?";
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: response },
-      ]);
-    }, 1000);
+    // Send message to MCP client
+    sendToMCP(inputMessage);
 
     setInputMessage("");
   };

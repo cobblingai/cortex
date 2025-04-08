@@ -34,6 +34,7 @@
     "@electron/fuses": "^1.8.0",
     "@tanstack/react-router-devtools": "^1.115.0",
     "@tanstack/router-plugin": "^1.115.0",
+    "@types/electron-squirrel-startup": "^1.0.2",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
