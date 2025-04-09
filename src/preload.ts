@@ -15,14 +15,14 @@ contextBridge.exposeInMainWorld("electron", {
       }
     },
     on: (channel: string, func: (...args: any[]) => void) => {
-      const validChannels = ["mcp-message-reply"];
+      const validChannels = ["mcp-message-reply", "open-model-settings"];
       if (validChannels.includes(channel)) {
         // Strip event as it includes `sender`
         ipcRenderer.on(channel, (event, ...args) => func(...args));
       }
     },
     removeListener: (channel: string, func: (...args: any[]) => void) => {
-      const validChannels = ["mcp-message-reply"];
+      const validChannels = ["mcp-message-reply", "open-model-settings"];
       if (validChannels.includes(channel)) {
         ipcRenderer.removeListener(channel, func);
       }

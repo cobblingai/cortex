@@ -4,11 +4,14 @@ import {
   utilityProcess,
   UtilityProcess,
   ipcMain,
+  Menu,
 } from "electron";
 import path, { dirname } from "node:path";
 import started from "electron-squirrel-startup";
 import { fileURLToPath } from "node:url";
 import type { MCPMessage } from "@/types/mcp.js";
+import { configManager } from "@/lib/config-manager.js";
+import { template } from "./menu/template.js";
 
 const inDevelopment = !app.isPackaged;
 
@@ -22,6 +25,11 @@ let mainWindow: BrowserWindow | null = null;
 let restartAttempts = 0;
 const MAX_RESTART_ATTEMPTS = 3;
 
+// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+if (started) {
+  app.quit();
+}
+
 const startMCPProcesses = () => {
   if (restartAttempts >= MAX_RESTART_ATTEMPTS) {
     console.error("Maximum restart attempts reached. Stopping MCP processes.");
@@ -29,8 +37,8 @@ const startMCPProcesses = () => {
   }
 
   try {
-    let mcpClientPath = path.join(__dirname, "client.js");
-    let mcpServerPath = path.join(__dirname, "server.js");
+    let mcpClientPath = path.join(__dirname, "client.js.mjs");
+    let mcpServerPath = path.join(__dirname, "server.js.mjs");
     if (app.isPackaged) {
       mcpClientPath = path.join(process.resourcesPath, "client.js.mjs");
       mcpServerPath = path.join(process.resourcesPath, "server.js.mjs");
@@ -134,11 +142,6 @@ const stopMCPProcesses = () => {
   }
 };
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (started) {
-  app.quit();
-}
-
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -167,10 +170,16 @@ const createWindow = () => {
   }
 };
 
+const createAppMenu = () => {
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+};
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
+  createAppMenu();
   createWindow();
   startMCPProcesses();
 });
@@ -203,6 +212,27 @@ ipcMain.on("mcp-message", (event, message: MCPMessage) => {
   if (mcpClientProcess) {
     mcpClientProcess.postMessage(message);
   }
+});
+
+// API Key Management IPC Handlers
+ipcMain.handle(
+  "set-api-key",
+  async (_, service: "openai" | "anthropic", apiKey: string) => {
+    await configManager.setApiKey(service, apiKey);
+  }
+);
+
+ipcMain.handle("get-api-key", async (_, service: "openai" | "anthropic") => {
+  return await configManager.getApiKey(service);
+});
+
+ipcMain.handle("remove-api-key", async (_, service: "openai" | "anthropic") => {
+  await configManager.removeApiKey(service);
+});
+
+ipcMain.on("open-model-settings", () => {
+  console.log("Open model settings");
+  mainWindow?.webContents.send("open-model-settings");
 });
 
 // In this file you can include the rest of your app's specific main process

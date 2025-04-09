@@ -80,6 +80,18 @@ The MCP server process:
 - Communicates with the main process through IPC
 - Processes and routes incoming messages
 
+## Configuration Management
+
+### Config Manager (`src/lib/config-manager.ts`)
+
+The Config Manager is responsible for securely storing and retrieving sensitive configuration data, such as API keys, using Electron's `safeStorage` encryption. It ensures that sensitive data is stored in an encrypted format in the user's application data directory, which is specific to each user account on their machine.
+
+- **API Key Management**: Provides methods to set, get, and remove API keys for services like OpenAI and Anthropic.
+- **Security**: Utilizes Electron's `safeStorage` to encrypt and decrypt configuration data, ensuring that sensitive information is never stored in plain text.
+- **IPC Integration**: Exposes API key management functions to the renderer process through IPC handlers defined in the main process, allowing secure interaction with the configuration data without exposing it directly to the renderer.
+
+The Config Manager is a critical component for maintaining the security and integrity of sensitive data within the application.
+
 ## Development Tools and Configuration
 
 - **Vite**: Used for fast development and building
