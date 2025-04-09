@@ -1,6 +1,6 @@
 import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-
+import ModelSettingsDialog from "@/components/model-settings-dialog";
 export const Route = createRootRoute({
   component: () => (
     <>
@@ -14,6 +14,7 @@ export const Route = createRootRoute({
       </div>
       <hr /> */}
       <Outlet />
+      <ModelSettingsDialog />
       <TanStackRouterDevtools />
     </>
   ),

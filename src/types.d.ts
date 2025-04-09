@@ -11,5 +11,10 @@ interface Window {
       on(channel: string, func: (...args: any[]) => void): void;
       removeListener(channel: string, func: (...args: any[]) => void): void;
     };
+    apiKeys: {
+      set(service: "openai" | "anthropic", apiKey: string): Promise<void>;
+      get(service: "openai" | "anthropic"): Promise<string | null>;
+      remove(service: "openai" | "anthropic"): Promise<void>;
+    };
   };
 }

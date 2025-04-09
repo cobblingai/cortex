@@ -28,4 +28,13 @@ contextBridge.exposeInMainWorld("electron", {
       }
     },
   },
+
+  apiKeys: {
+    set: (service: "openai" | "anthropic", apiKey: string) =>
+      ipcRenderer.invoke("set-api-key", service, apiKey),
+    get: (service: "openai" | "anthropic") =>
+      ipcRenderer.invoke("get-api-key", service),
+    remove: (service: "openai" | "anthropic") =>
+      ipcRenderer.invoke("remove-api-key", service),
+  },
 });
