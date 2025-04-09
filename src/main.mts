@@ -230,9 +230,9 @@ ipcMain.handle("remove-api-key", async (_, service: "openai" | "anthropic") => {
   await configManager.removeApiKey(service);
 });
 
-ipcMain.on("open-model-settings", () => {
-  console.log("Open model settings");
-  mainWindow?.webContents.send("open-model-settings");
+ipcMain.on("open-settings", () => {
+  console.log("Open settings");
+  mainWindow?.webContents.send("open-settings");
 });
 
 // In this file you can include the rest of your app's specific main process

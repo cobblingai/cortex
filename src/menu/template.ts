@@ -13,14 +13,9 @@ export const template: MenuItemConstructorOptions[] = [
             { type: "separator" as const },
             {
               label: "Settings",
-              submenu: [
-                {
-                  label: "Model",
-                  click: () => {
-                    ipcMain.emit("open-model-settings");
-                  },
-                },
-              ],
+              click: () => {
+                ipcMain.emit("open-settings");
+              },
             },
             { role: "services" as const },
             { type: "separator" as const },
