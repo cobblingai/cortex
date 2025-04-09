@@ -90,3 +90,6 @@ typings/
 
 # Electron-Forge
 out/
+
+# API Key
+.api-key
