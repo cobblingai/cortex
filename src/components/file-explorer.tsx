@@ -34,10 +34,7 @@ export function FileExplorer({
   };
 
   return (
-    <div className="flex-1 flex flex-col border-r">
-      <div className="p-4 border-b">
-        <h1 className="text-xl font-bold">File System Manager</h1>
-      </div>
+    <div className="flex-1 flex flex-col border-r h-full">
       <div className="p-4 flex items-center gap-2">
         <Button variant="outline" size="sm">
           New Folder
@@ -45,11 +42,6 @@ export function FileExplorer({
         <Button variant="outline" size="sm">
           Upload
         </Button>
-        <div className="ml-auto">
-          <Button variant="ghost" size="icon" onClick={onOpenSidePanel}>
-            <MessageSquare className="h-5 w-5" />
-          </Button>
-        </div>
       </div>
       <ScrollArea className="flex-1 p-4">
         {renderFileSystem(fileSystem)}

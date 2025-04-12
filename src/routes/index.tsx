@@ -1,5 +1,10 @@
 import { AIAssistantPanel } from "@/components/ai-assistant-panel";
 import { FileExplorer } from "@/components/file-explorer";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { initialFileSystem, initialMessages } from "@/data/sample-data";
 import { FileSystemItem } from "@/types/file-system";
 import { createFileRoute } from "@tanstack/react-router";
@@ -22,21 +27,24 @@ function Index() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Main file browser */}
-      <FileExplorer
-        fileSystem={fileSystem}
-        selectedItems={selectedItems}
-        onToggleSelect={toggleSelect}
-        onOpenSidePanel={() => setIsSidePanelOpen(true)}
-      />
-
+    <SidebarProvider>
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <h1 className="text-xl font-bold">File System Manager</h1>
+          <SidebarTrigger className="-mr-1 ml-auto rotate-180" />
+        </header>
+        {/* Main file browser */}
+        <div className="flex-1 h-full overflow-hidden">
+          <FileExplorer
+            fileSystem={fileSystem}
+            selectedItems={selectedItems}
+            onToggleSelect={toggleSelect}
+            onOpenSidePanel={() => setIsSidePanelOpen(true)}
+          />
+        </div>
+      </SidebarInset>
       {/* AI Assistant Side Panel */}
-      <AIAssistantPanel
-        isOpen={isSidePanelOpen}
-        onClose={() => setIsSidePanelOpen(false)}
-        initialMessages={initialMessages}
-      />
-    </div>
+      <AIAssistantPanel side="right" initialMessages={initialMessages} />
+    </SidebarProvider>
   );
 }
