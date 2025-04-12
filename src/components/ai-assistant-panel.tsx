@@ -3,14 +3,15 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { ChatMessage } from "@/types/file-system";
+import { ChatMessage } from "@/components/chat-message";
+import type { ChatMessage as ChatMessageType } from "@/types/file-system";
 import type { MCPMessage, MCPMessageReply } from "@/types/mcp";
 import { toast } from "sonner";
 
 interface AIAssistantPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMessages: ChatMessage[];
+  initialMessages: ChatMessageType[];
 }
 
 export function AIAssistantPanel({
@@ -18,7 +19,7 @@ export function AIAssistantPanel({
   onClose,
   initialMessages,
 }: AIAssistantPanelProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessageType[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState("");
 
   useEffect(() => {
@@ -86,16 +87,11 @@ export function AIAssistantPanel({
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.map((message, index) => (
-            <div
+            <ChatMessage
               key={index}
-              className={`p-3 rounded-lg ${
-                message.role === "assistant"
-                  ? "bg-primary/10 text-primary-foreground"
-                  : "bg-muted"
-              }`}
-            >
-              <p className="text-sm">{message.content}</p>
-            </div>
+              content={message.content}
+              role={message.role}
+            />
           ))}
         </div>
       </ScrollArea>
