@@ -60,25 +60,16 @@ The preload script:
 - Exposes safe, controlled Node.js APIs to the renderer process
 - Implements security measures to prevent unauthorized access
 
-### MCP Client Process (`mcp/client.ts`)
+### MCP Client and Server Process (`mcp/client.ts` and `mcp/server.ts`)
 
-The MCP client process:
+The MCP process:
 
-- Runs as a separate Node.js child process
-- Handles outgoing message communication
-- Manages client-side MCP protocol implementation
-- Communicates with the main process through IPC
-- Handles message queuing and delivery
-
-### MCP Server Process (`mcp/server.ts`)
-
-The MCP server process:
-
-- Runs as a separate Node.js child process
-- Handles incoming message communication
-- Manages server-side MCP protocol implementation
+- Runs as a single Node.js child process
+- Uses the MCP TypeScript SDK for protocol implementation
+- Handles both incoming and outgoing message communication
 - Communicates with the main process through IPC
 - Processes and routes incoming messages
+- Handles message queuing and delivery
 
 ## Configuration Management
 
@@ -120,7 +111,7 @@ The application uses:
 1. Main process changes require restarting the application
 2. Renderer process changes support hot module replacement
 3. Preload script changes require application restart
-4. MCP client and server process changes require application restart
+4. MCP process changes require application restart
 5. Development tools are automatically opened in development mode
 
 ## Future Considerations

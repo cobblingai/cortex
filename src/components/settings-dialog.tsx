@@ -64,17 +64,15 @@ const data: { nav: { name: NavItem; icon: React.ElementType }[] } = {
 };
 
 export function SettingsDialog() {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
   const [selectedNavItem, setSelectedNavItem] =
     React.useState<NavItem>("Models");
 
   useEffect(() => {
-    window.electron.ipcRenderer.on("open-settings", () => {
-      setOpen(true);
-    });
+    window.electron.settings.open();
 
     return () => {
-      window.electron.ipcRenderer.removeListener("open-settings", () => {});
+      window.electron.settings.removeListener(() => {});
     };
   }, []);
 

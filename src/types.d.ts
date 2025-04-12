@@ -6,15 +6,19 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 
 interface Window {
   electron: {
-    ipcRenderer: {
-      send(channel: string, data: any): void;
-      on(channel: string, func: (...args: any[]) => void): void;
-      removeListener(channel: string, func: (...args: any[]) => void): void;
-    };
     apiKeys: {
       set(service: "openai" | "anthropic", apiKey: string): Promise<void>;
       get(service: "openai" | "anthropic"): Promise<string | null>;
       remove(service: "openai" | "anthropic"): Promise<void>;
+    };
+    mcp: {
+      send(message: MCPMessage): void;
+      onReply(callback: (message: MCPMessageReply) => void): void;
+      removeListener(callback: (message: MCPMessageReply) => void): void;
+    };
+    settings: {
+      open(): void;
+      removeListener(callback: () => void): void;
     };
   };
 }

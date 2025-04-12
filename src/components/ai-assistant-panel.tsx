@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ChatMessage } from "@/types/file-system";
-import type { MCPMessage } from "@/types/mcp";
+import type { MCPMessage, MCPMessageReply } from "@/types/mcp";
+import { toast } from "sonner";
 
 interface AIAssistantPanelProps {
   isOpen: boolean;
@@ -21,8 +22,8 @@ export function AIAssistantPanel({
   const [inputMessage, setInputMessage] = useState("");
 
   useEffect(() => {
-    const handleMCPResponse = (message: MCPMessage) => {
-      if (message.type === "data") {
+    const handleMCPResponse = (message: MCPMessageReply) => {
+      if (message.type === "mcp-message-reply") {
         setMessages((prev) => [
           ...prev,
           { role: "assistant", content: message.payload.message },
@@ -30,29 +31,33 @@ export function AIAssistantPanel({
       }
     };
 
-    window.electron.ipcRenderer.on("mcp-message-reply", handleMCPResponse);
+    window.electron.mcp.onReply(handleMCPResponse);
 
     return () => {
-      window.electron.ipcRenderer.removeListener(
-        "mcp-message-reply",
-        handleMCPResponse
-      );
+      window.electron.mcp.removeListener(handleMCPResponse);
     };
   }, []);
 
-  const sendToMCP = (message: string) => {
+  const sendToMCP = async (message: string) => {
+    const anthropicKey = await window.electron.apiKeys.get("anthropic");
+    if (!anthropicKey) {
+      toast.error("No Anthropic API key found");
+      return;
+    }
+
     const mcpMessage: MCPMessage = {
       id: crypto.randomUUID(),
-      type: "data",
+      type: "mcp-message",
       payload: {
+        model: "claude-3-5-sonnet-20241022",
+        apiKey: anthropicKey || "",
         message,
-        timestamp: Date.now(),
       },
       timestamp: Date.now(),
     };
 
     // Send message to MCP client process
-    window.electron.ipcRenderer.send("mcp-message", mcpMessage);
+    window.electron.mcp.send(mcpMessage);
   };
 
   const handleSendMessage = () => {

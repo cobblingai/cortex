@@ -1,192 +1,267 @@
-import { EventEmitter } from "events";
-import type { MCPMessage } from "@/types/mcp";
+import { UtilityProcessServerTransport } from "@/lib/mcp/server/utility-process";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 
-interface MCPConnection {
-  id: string;
-  lastActive: number;
-  status: "connected" | "disconnected";
-}
+const NWS_API_BASE = "https://api.weather.gov";
+const USER_AGENT = "weather-app/1.0";
 
-class MCPServer extends EventEmitter {
-  private connections: Map<string, MCPConnection> = new Map();
-  private messageQueue: MCPMessage[] = [];
-  private isProcessing: boolean = false;
-  private connectionTimeout: number = 30000; // 30 seconds
+// Create server instance
+const server = new McpServer({
+  name: "weather",
+  version: "1.0.0",
+  capabilities: {
+    resources: {},
+    tools: {},
+  },
+});
 
-  constructor() {
-    super();
-    this.setupMessageHandlers();
-    this.startConnectionMonitor();
-  }
+// Helper function for making NWS API requests
+async function makeNWSRequest<T>(url: string): Promise<T | null> {
+  const headers = {
+    "User-Agent": USER_AGENT,
+    Accept: "application/geo+json",
+  };
 
-  private setupMessageHandlers() {
-    if (!process.parentPort) {
-      throw new Error("MCPServer must be run as a UtilityProcess");
+  try {
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-
-    // Handle messages from main process
-    process.parentPort.on("message", (messageEvent: { data: MCPMessage }) => {
-      this.handleIncomingMessage(messageEvent.data);
-    });
-
-    // Handle process termination
-    process.on("SIGTERM", () => {
-      this.cleanup();
-    });
-  }
-
-  private startConnectionMonitor() {
-    setInterval(() => {
-      const now = Date.now();
-      for (const [id, connection] of this.connections.entries()) {
-        if (now - connection.lastActive > this.connectionTimeout) {
-          this.handleDisconnection(id);
-        }
-      }
-    }, 5000); // Check every 5 seconds
-  }
-
-  private handleIncomingMessage(message: MCPMessage) {
-    // Update connection status
-    if (message.type === "connect") {
-      this.handleConnection(message);
-      return;
-    }
-
-    // Add message to queue
-    this.messageQueue.push(message);
-
-    // Process queue if not already processing
-    if (!this.isProcessing) {
-      this.processQueue();
-    }
-  }
-
-  private handleConnection(message: MCPMessage) {
-    const connectionId = message.payload.connectionId;
-    this.connections.set(connectionId, {
-      id: connectionId,
-      lastActive: Date.now(),
-      status: "connected",
-    });
-
-    this.sendToMain({
-      id: message.id,
-      type: "connection_ack",
-      payload: { connectionId, status: "connected" },
-      timestamp: Date.now(),
-    });
-  }
-
-  private handleDisconnection(connectionId: string) {
-    const connection = this.connections.get(connectionId);
-    if (connection) {
-      connection.status = "disconnected";
-      this.connections.delete(connectionId);
-
-      this.sendToMain({
-        id: "disconnect",
-        type: "disconnect",
-        payload: { connectionId },
-        timestamp: Date.now(),
-      });
-    }
-  }
-
-  private async processQueue() {
-    if (this.isProcessing || this.messageQueue.length === 0) {
-      return;
-    }
-
-    this.isProcessing = true;
-
-    try {
-      while (this.messageQueue.length > 0) {
-        const message = this.messageQueue.shift();
-        if (!message) continue;
-
-        // Update connection activity
-        if (message.payload.connectionId) {
-          const connection = this.connections.get(message.payload.connectionId);
-          if (connection) {
-            connection.lastActive = Date.now();
-          }
-        }
-
-        // Process the message
-        await this.processMessage(message);
-
-        // Acknowledge message processing
-        this.sendToMain({
-          id: message.id,
-          type: "ack",
-          payload: { status: "processed" },
-          timestamp: Date.now(),
-        });
-      }
-    } catch (error) {
-      console.error("Error processing message queue:", error);
-      this.sendToMain({
-        id: "error",
-        type: "error",
-        payload: { error: error.message },
-        timestamp: Date.now(),
-      });
-    } finally {
-      this.isProcessing = false;
-    }
-  }
-
-  private async processMessage(message: MCPMessage) {
-    // Emit the message for any listeners
-    this.emit("message", message);
-
-    // Process based on message type
-    switch (message.type) {
-      case "ping":
-        await this.handlePing(message);
-        break;
-      case "data":
-        await this.handleData(message);
-        break;
-      case "disconnect":
-        this.handleDisconnection(message.payload.connectionId);
-        break;
-      default:
-        console.warn(`Unknown message type: ${message.type}`);
-    }
-  }
-
-  private async handlePing(message: MCPMessage) {
-    this.sendToMain({
-      id: message.id,
-      type: "pong",
-      payload: { timestamp: Date.now() },
-      timestamp: Date.now(),
-    });
-  }
-
-  private async handleData(message: MCPMessage) {
-    // Process data message
-    // This is where you'd implement your specific data handling logic
-    console.log("Processing data message:", message);
-  }
-
-  private sendToMain(message: MCPMessage) {
-    if (!process.parentPort) return;
-    process.parentPort.postMessage(message);
-  }
-
-  private cleanup() {
-    // Cleanup resources before process termination
-    this.messageQueue = [];
-    this.isProcessing = false;
-    this.connections.clear();
+    return (await response.json()) as T;
+  } catch (error) {
+    console.error("Error making NWS request:", error);
+    return null;
   }
 }
 
-// Initialize the MCP server
-const server = new MCPServer();
+interface AlertFeature {
+  properties: {
+    event?: string;
+    areaDesc?: string;
+    severity?: string;
+    status?: string;
+    headline?: string;
+  };
+}
 
-// Export for testing purposes
-export { MCPServer, MCPMessage, MCPConnection };
+// Format alert data
+function formatAlert(feature: AlertFeature): string {
+  const props = feature.properties;
+  return [
+    `Event: ${props.event || "Unknown"}`,
+    `Area: ${props.areaDesc || "Unknown"}`,
+    `Severity: ${props.severity || "Unknown"}`,
+    `Status: ${props.status || "Unknown"}`,
+    `Headline: ${props.headline || "No headline"}`,
+    "---",
+  ].join("\n");
+}
+
+interface ForecastPeriod {
+  name?: string;
+  temperature?: number;
+  temperatureUnit?: string;
+  windSpeed?: string;
+  windDirection?: string;
+  shortForecast?: string;
+}
+
+interface AlertsResponse {
+  features: AlertFeature[];
+}
+
+interface PointsResponse {
+  properties: {
+    forecast?: string;
+  };
+}
+
+interface ForecastResponse {
+  properties: {
+    periods: ForecastPeriod[];
+  };
+}
+
+// Register weather tools
+server.tool(
+  "get-alerts",
+  "Get weather alerts for a state",
+  {
+    state: z.string().length(2).describe("Two-letter state code (e.g. CA, NY)"),
+  },
+  async ({ state }) => {
+    const stateCode = state.toUpperCase();
+    const alertsUrl = `${NWS_API_BASE}/alerts?area=${stateCode}`;
+    const alertsData = await makeNWSRequest<AlertsResponse>(alertsUrl);
+
+    if (!alertsData) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Failed to retrieve alerts data",
+          },
+        ],
+      };
+    }
+
+    const features = alertsData.features || [];
+    if (features.length === 0) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `No active alerts for ${stateCode}`,
+          },
+        ],
+      };
+    }
+
+    const formattedAlerts = features.map(formatAlert);
+    const alertsText = `Active alerts for ${stateCode}:\n\n${formattedAlerts.join("\n")}`;
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: alertsText,
+        },
+      ],
+    };
+  }
+);
+
+server.tool(
+  "get-forecast",
+  "Get weather forecast for a location",
+  {
+    latitude: z.number().min(-90).max(90).describe("Latitude of the location"),
+    longitude: z
+      .number()
+      .min(-180)
+      .max(180)
+      .describe("Longitude of the location"),
+  },
+  async ({ latitude, longitude }) => {
+    // Get grid point data
+    const pointsUrl = `${NWS_API_BASE}/points/${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+    const pointsData = await makeNWSRequest<PointsResponse>(pointsUrl);
+
+    if (!pointsData) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Failed to retrieve grid point data for coordinates: ${latitude}, ${longitude}. This location may not be supported by the NWS API (only US locations are supported).`,
+          },
+        ],
+      };
+    }
+
+    const forecastUrl = pointsData.properties?.forecast;
+    if (!forecastUrl) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Failed to get forecast URL from grid point data",
+          },
+        ],
+      };
+    }
+
+    // Get forecast data
+    const forecastData = await makeNWSRequest<ForecastResponse>(forecastUrl);
+    if (!forecastData) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Failed to retrieve forecast data",
+          },
+        ],
+      };
+    }
+
+    const periods = forecastData.properties?.periods || [];
+    if (periods.length === 0) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "No forecast periods available",
+          },
+        ],
+      };
+    }
+
+    // Format forecast periods
+    const formattedForecast = periods.map((period: ForecastPeriod) =>
+      [
+        `${period.name || "Unknown"}:`,
+        `Temperature: ${period.temperature || "Unknown"}°${period.temperatureUnit || "F"}`,
+        `Wind: ${period.windSpeed || "Unknown"} ${period.windDirection || ""}`,
+        `${period.shortForecast || "No forecast available"}`,
+        "---",
+      ].join("\n")
+    );
+
+    const forecastText = `Forecast for ${latitude}, ${longitude}:\n\n${formattedForecast.join("\n")}`;
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: forecastText,
+        },
+      ],
+    };
+  }
+);
+
+async function main() {
+  process.parentPort?.on("message", async (message: Electron.MessageEvent) => {
+    console.log("Received message from main process:", message);
+    if (message.data.type === "start") {
+      try {
+        const [port] = message.ports;
+        const transport = new UtilityProcessServerTransport(port);
+        await server.connect(transport);
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      console.error("Received unknown message from main process:", message);
+    }
+  });
+
+  // server.server.onclose = () => {
+  //   console.error("Server closed");
+  // };
+  // server.server.onerror = (error) => {
+  //   console.error("Server error:", error);
+  // };
+  // await server.connect(transport);
+
+  console.error("Weather MCP Server running on stdio");
+
+  // Add process exit handlers
+  process.on("SIGINT", () => {
+    console.error("Server process received SIGINT signal");
+    process.exit(0);
+  });
+
+  process.on("SIGTERM", () => {
+    console.error("Server process received SIGTERM signal");
+    process.exit(0);
+  });
+
+  process.on("exit", (code) => {
+    console.error(`Server process is exiting with code ${code}`);
+  });
+}
+
+main().catch((error) => {
+  console.error("Fatal error in main():", error);
+  process.exit(1);
+});

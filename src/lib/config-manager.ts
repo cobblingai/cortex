@@ -43,6 +43,43 @@ class ConfigManager {
     }
   }
 
+  // Selected Service
+  async setSelectedService(service: "openai" | "anthropic"): Promise<void> {
+    const config = await this.loadEncryptedConfig();
+    config.selected_service = service;
+    await this.saveEncryptedConfig(config);
+  }
+
+  async getSelectedService(): Promise<"openai" | "anthropic" | null> {
+    const config = await this.loadEncryptedConfig();
+    return config.selected_service as "openai" | "anthropic" | null;
+  }
+
+  async removeSelectedService(): Promise<void> {
+    const config = await this.loadEncryptedConfig();
+    delete config.selected_service;
+    await this.saveEncryptedConfig(config);
+  }
+
+  // Model
+  async setModel(model: string): Promise<void> {
+    const config = await this.loadEncryptedConfig();
+    config.model = model;
+    await this.saveEncryptedConfig(config);
+  }
+
+  async getModel(): Promise<string | null> {
+    const config = await this.loadEncryptedConfig();
+    return config.model || null;
+  }
+
+  async removeModel(): Promise<void> {
+    const config = await this.loadEncryptedConfig();
+    delete config.model;
+    await this.saveEncryptedConfig(config);
+  }
+
+  // API Keys
   async setApiKey(
     service: "openai" | "anthropic",
     apiKey: string

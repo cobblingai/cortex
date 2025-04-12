@@ -1,17 +1,18 @@
 import {
   app,
   BrowserWindow,
-  utilityProcess,
-  UtilityProcess,
   ipcMain,
   Menu,
+  MessageChannelMain,
 } from "electron";
 import path, { dirname } from "node:path";
 import started from "electron-squirrel-startup";
 import { fileURLToPath } from "node:url";
-import type { MCPMessage } from "@/types/mcp.js";
+import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { configManager } from "@/lib/config-manager.js";
 import { template } from "./menu/template.js";
+// import { MCPProcess } from "./mcp/process.js";
+import { MCPProcess } from "./mcp/mcp-process.js";
 
 const inDevelopment = !app.isPackaged;
 
@@ -19,11 +20,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // MCP Process Management
-let mcpClientProcess: UtilityProcess | null = null;
-let mcpServerProcess: UtilityProcess | null = null;
+// let mcpProcess: UtilityProcess | null = null;
+let mcpClientProcess: MCPProcess | null = null;
+let mcpServerProcess: MCPProcess | null = null;
 let mainWindow: BrowserWindow | null = null;
-let restartAttempts = 0;
-const MAX_RESTART_ATTEMPTS = 3;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -31,113 +31,47 @@ if (started) {
 }
 
 const startMCPProcesses = () => {
-  if (restartAttempts >= MAX_RESTART_ATTEMPTS) {
-    console.error("Maximum restart attempts reached. Stopping MCP processes.");
-    return;
-  }
-
   try {
-    let mcpClientPath = path.join(__dirname, "client.js.mjs");
-    let mcpServerPath = path.join(__dirname, "server.js.mjs");
+    let mcpClientPath = path.join(__dirname, "mcp-client.mjs");
+    let mcpServerPath = path.join(__dirname, "mcp-server.mjs");
     if (app.isPackaged) {
-      mcpClientPath = path.join(process.resourcesPath, "client.js.mjs");
-      mcpServerPath = path.join(process.resourcesPath, "server.js.mjs");
+      mcpClientPath = path.join(process.resourcesPath, "mcp-client.mjs");
+      mcpServerPath = path.join(process.resourcesPath, "mcp-server.mjs");
     }
 
-    // Start MCP Client Process
-    mcpClientProcess = utilityProcess.fork(mcpClientPath, [], {
-      stdio: "pipe",
-    });
+    const { port1, port2 } = new MessageChannelMain();
 
-    // Start MCP Server Process
-    mcpServerProcess = utilityProcess.fork(mcpServerPath, [], {
-      stdio: "pipe",
-    });
+    mcpServerProcess = new MCPProcess(mcpServerPath, [], port1);
+    mcpClientProcess = new MCPProcess(mcpClientPath, [], port2);
 
-    // Add error handlers
-    mcpClientProcess.on("error", (error) => {
-      console.error("MCP Client Process error:", error);
-      mcpClientProcess = null;
-      restartAttempts++;
-    });
-
-    mcpServerProcess.on("error", (error) => {
-      console.error("MCP Server Process error:", error);
-      mcpServerProcess = null;
-      restartAttempts++;
-    });
-
-    // Handle MCP Client Process Events
-    mcpClientProcess.on("message", (message: MCPMessage) => {
-      console.log("MCP Client Message:", message);
-      // Forward messages to renderer or handle as needed
-      mainWindow?.webContents.send("mcp-message-reply", message);
-    });
-
-    mcpClientProcess.on("exit", (code: number) => {
-      console.log("MCP Client Process exited with code:", code);
-      mcpClientProcess = null;
-      // Attempt to restart if not a clean exit
-      if (code !== 0) {
-        restartAttempts++;
-        console.log(
-          "MCP Client Process error buffer:",
-          errorBuffer.toString("utf8")
+    mcpClientProcess.onmessage = (message: MCPMessageReply) => {
+      console.log(
+        "MCP Client Process Message reply sent to renderer:",
+        message
+      );
+      if (!mainWindow) {
+        console.error(
+          "Main window not found. Cannot send message to renderer."
         );
-        setTimeout(startMCPProcesses, 1000);
+        return;
       }
-    });
+      mainWindow.webContents.send("mcp-message-reply", message);
+    };
 
-    // Handle MCP Server Process Events
-    mcpServerProcess.on("message", (message: MCPMessage) => {
-      console.log("MCP Server Message:", message);
-      // Forward messages to renderer or handle as needed
-    });
-
-    mcpServerProcess.on("exit", (code: number) => {
-      console.log("MCP Server Process exited with code:", code);
-      mcpServerProcess = null;
-      // Attempt to restart if not a clean exit
-      if (code !== 0) {
-        restartAttempts++;
-        setTimeout(startMCPProcesses, 1000);
-      }
-    });
-
-    // Handle process spawn events
-    mcpClientProcess.on("spawn", () => {
-      console.log("MCP Client Process spawned successfully");
-      restartAttempts = 0;
-    });
-
-    mcpServerProcess.on("spawn", () => {
-      console.log("MCP Server Process spawned successfully");
-      restartAttempts = 0;
-    });
-
-    let errorBuffer = Buffer.from([]);
-    mcpClientProcess.stderr?.on("data", (data) => {
-      errorBuffer = Buffer.concat([errorBuffer, data]);
-      // console.error("MCP Client Process stderr:", data);
-    });
-
-    mcpClientProcess.stdout?.on("data", (data) => {
-      const buffer = Buffer.concat([errorBuffer, data]);
-      console.log("MCP Client Process stdout:", buffer.toString("utf8"));
-    });
+    mcpServerProcess.start();
+    mcpClientProcess.start();
   } catch (error) {
     console.error("Error starting MCP processes:", error);
-    restartAttempts++;
   }
 };
 
 const stopMCPProcesses = () => {
   if (mcpClientProcess) {
-    mcpClientProcess.kill();
+    mcpClientProcess.cleanup();
     mcpClientProcess = null;
   }
   if (mcpServerProcess) {
-    mcpServerProcess.kill();
+    mcpServerProcess.cleanup();
     mcpServerProcess = null;
   }
 };
@@ -165,9 +99,9 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  if (inDevelopment) {
-    mainWindow.webContents.openDevTools();
-  }
+  // if (inDevelopment) {
+  mainWindow.webContents.openDevTools();
+  // }
 };
 
 const createAppMenu = () => {
@@ -175,13 +109,61 @@ const createAppMenu = () => {
   Menu.setApplicationMenu(menu);
 };
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on("ready", () => {
+/**
+ * When the app is ready, create the app menu, create the window, start the MCP processes, and handle the activate event.
+ * Then, handle the API key management IPC handlers.
+ *
+ * Note: Electron exposes app.whenReady() as a helper specifically for the ready event to avoid subtle pitfalls with
+ * directly listening to that event in particular. See electron/electron#21972 for details.
+ */
+app.whenReady().then(() => {
   createAppMenu();
   createWindow();
-  startMCPProcesses();
+
+  app.on("activate", () => {
+    // On OS X it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+
+  // Handle IPC messages from renderer
+  ipcMain.on("mcp-message", (_event, message: MCPMessage) => {
+    console.log("MCP Message received from renderer:", message);
+
+    startMCPProcesses();
+
+    if (mcpClientProcess) {
+      mcpClientProcess.send(message);
+    } else {
+      console.error("MCP Client Process not found. Cannot send message.");
+    }
+  });
+
+  // API Key Management IPC Handlers
+  ipcMain.handle(
+    "set-api-key",
+    async (_, service: "openai" | "anthropic", apiKey: string) => {
+      await configManager.setApiKey(service, apiKey);
+    }
+  );
+
+  ipcMain.handle("get-api-key", async (_, service: "openai" | "anthropic") => {
+    return await configManager.getApiKey(service);
+  });
+
+  ipcMain.handle(
+    "remove-api-key",
+    async (_, service: "openai" | "anthropic") => {
+      await configManager.removeApiKey(service);
+    }
+  );
+
+  ipcMain.on("open-settings", () => {
+    console.log("Open settings");
+    mainWindow?.webContents.send("open-settings");
+  });
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -194,45 +176,9 @@ app.on("window-all-closed", () => {
   }
 });
 
-app.on("activate", () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-
 // Clean up MCP processes before quitting
 app.on("before-quit", () => {
   stopMCPProcesses();
-});
-
-// Handle IPC messages from renderer
-ipcMain.on("mcp-message", (event, message: MCPMessage) => {
-  if (mcpClientProcess) {
-    mcpClientProcess.postMessage(message);
-  }
-});
-
-// API Key Management IPC Handlers
-ipcMain.handle(
-  "set-api-key",
-  async (_, service: "openai" | "anthropic", apiKey: string) => {
-    await configManager.setApiKey(service, apiKey);
-  }
-);
-
-ipcMain.handle("get-api-key", async (_, service: "openai" | "anthropic") => {
-  return await configManager.getApiKey(service);
-});
-
-ipcMain.handle("remove-api-key", async (_, service: "openai" | "anthropic") => {
-  await configManager.removeApiKey(service);
-});
-
-ipcMain.on("open-settings", () => {
-  console.log("Open settings");
-  mainWindow?.webContents.send("open-settings");
 });
 
 // In this file you can include the rest of your app's specific main process

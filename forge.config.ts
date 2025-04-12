@@ -10,10 +10,24 @@ import pkg from "./package.json";
 
 const config: ForgeConfig = {
   packagerConfig: {
-    executableName: pkg.name,
+    executableName: pkg.productName,
     name: pkg.productName,
     asar: true,
-    extraResource: [".vite/build/client.js.mjs", ".vite/build/server.js.mjs"],
+    extraResource: [".vite/build/mcp-server.mjs", ".vite/build/mcp-client.mjs"],
+    // osxSign: {
+    //   identity: process.env.IDENTITY_MAS_CODE,
+    //   provisioningProfile: "./build/MAS.provisionprofile",
+    //   optionsForFile: (filePath: string) => {
+    //     let entitlements = "./build/Entitlements.mas.child.plist";
+    //     if (filePath.endsWith("YOURAPP.APP")) {
+    //       entitlements = "./build/Entitlements.mas.main.plist";
+    //     }
+    //     return {
+    //       hardenedRuntime: true,
+    //       entitlements: entitlements,
+    //     };
+    //   },
+    // },
   },
   rebuildConfig: {},
   makers: [
@@ -39,12 +53,12 @@ const config: ForgeConfig = {
           target: "preload",
         },
         {
-          entry: "src/mcp/client.ts",
-          config: "vite.mcp.client.config.ts",
-        },
-        {
           entry: "src/mcp/server.ts",
           config: "vite.mcp.server.config.ts",
+        },
+        {
+          entry: "src/mcp/client.ts",
+          config: "vite.mcp.client.config.ts",
         },
       ],
       renderer: [
