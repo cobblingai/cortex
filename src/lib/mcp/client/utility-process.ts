@@ -7,7 +7,7 @@ import { JSONRPCMessage } from "@modelcontextprotocol/sdk/types.js";
 import { MessagePortMain } from "electron";
 
 export class UtilityProcessClientTransport implements Transport {
-  private _started = false;
+  private started = false;
 
   onclose?: (() => void) | undefined;
   onerror?: ((error: Error) => void) | undefined;
@@ -17,13 +17,13 @@ export class UtilityProcessClientTransport implements Transport {
   constructor(private port: MessagePortMain) {}
 
   async start(): Promise<void> {
-    if (this._started) {
+    if (this.started) {
       throw new Error(
         "UtilityProcessClientTransport already started! If using Server class, note that connect() calls start() automatically."
       );
     }
 
-    this._started = true;
+    this.started = true;
 
     this.port.on("message", (messageEvent: Electron.MessageEvent) => {
       const message = deserializeMessage(messageEvent.data);
@@ -32,6 +32,8 @@ export class UtilityProcessClientTransport implements Transport {
 
     this.port.on("close", () => {
       this.onclose?.();
+      this.started = false;
+      this.port.close();
     });
 
     this.port.start();
@@ -43,5 +45,7 @@ export class UtilityProcessClientTransport implements Transport {
 
   async close(): Promise<void> {
     this.port.close();
+    this.started = false;
+    this.onclose?.();
   }
 }

@@ -1,10 +1,12 @@
+import { ChatMessage } from "./file-system";
+
 export interface MCPMessage {
   id: string;
   type: "mcp-message";
   payload: {
     model: string;
     apiKey: string;
-    message: string;
+    messages: ChatMessage[];
   };
   timestamp: number;
 }

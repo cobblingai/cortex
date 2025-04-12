@@ -16,17 +16,30 @@ cortex/
 │   ├── components/        # React components
 │   ├── data/             # Data management and storage
 │   ├── lib/              # Utility functions and shared code
+│   │   ├── mcp/          # MCP-related utilities
+│   │   │   ├── client/   # MCP client utilities
+│   │   │   └── server/   # MCP server utilities
+│   │   ├── config-manager.ts # Configuration management
+│   │   └── utils.ts      # General utility functions
 │   ├── routes/           # Application routes
 │   ├── styles/           # CSS and styling
 │   ├── types/            # TypeScript type definitions
+│   ├── types.d.ts        # Global type definitions
+│   ├── hooks/            # Custom React hooks
+│   ├── menu/             # Application menu configuration
 │   ├── mcp/              # Message Control Protocol implementation
 │   │   ├── client.ts     # MCP client implementation
 │   │   └── server.ts     # MCP server implementation
-│   └── app.tsx            # Main React application component
+│   └── routeTree.gen.ts  # Generated route tree
 ├── vite.main.config.ts    # Vite configuration for main process
 ├── vite.renderer.config.mts # Vite configuration for renderer process
 ├── vite.preload.config.ts # Vite configuration for preload script
-└── forge.config.ts        # Electron Forge configuration
+├── vite.mcp.client.config.ts # Vite configuration for MCP client
+├── vite.mcp.server.config.ts # Vite configuration for MCP server
+├── forge.config.ts        # Electron Forge configuration
+├── components.json        # UI components configuration
+├── tsconfig.json          # TypeScript configuration
+└── .eslintrc.json         # ESLint configuration
 ```
 
 ## Process Architecture
@@ -86,10 +99,12 @@ The Config Manager is a critical component for maintaining the security and inte
 ## Development Tools and Configuration
 
 - **Vite**: Used for fast development and building
-  - Separate configurations for main, renderer, and preload processes
+  - Separate configurations for main, renderer, preload, and MCP processes
 - **Electron Forge**: Handles packaging and distribution
 - **TypeScript**: Used throughout the codebase for type safety
 - **React**: Used for building the user interface
+- **ESLint**: Used for code quality and consistency
+- **pnpm**: Package manager for dependencies
 
 ## Build and Development
 
@@ -113,6 +128,8 @@ The application uses:
 3. Preload script changes require application restart
 4. MCP process changes require application restart
 5. Development tools are automatically opened in development mode
+6. Route changes require regeneration of routeTree.gen.ts
+7. Type changes may require rebuilding the application
 
 ## Future Considerations
 
@@ -123,3 +140,26 @@ The application uses:
 - Consider implementing a state management solution
 - Implement message persistence and recovery mechanisms
 - Add monitoring and health checks for MCP processes
+
+## Library Components
+
+### Utility Libraries (`src/lib/`)
+
+The `lib` directory contains shared utility code and common functionality used across the application:
+
+- **Config Manager** (`config-manager.ts`):
+
+  - Handles application configuration management
+  - Provides secure storage for sensitive data
+  - Manages environment-specific settings
+
+- **General Utilities** (`utils.ts`):
+
+  - Contains common utility functions
+  - Provides shared helper methods
+  - Implements cross-cutting concerns
+
+- **MCP Utilities** (`lib/mcp/`):
+  - Contains MCP-specific utilities and helpers
+  - Separated into client and server components
+  - Provides shared functionality for MCP implementation

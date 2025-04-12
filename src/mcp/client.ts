@@ -1,5 +1,6 @@
 import { UtilityProcessClientTransport } from "@/lib/mcp/client/utility-process";
-import { MCPMessageReply } from "@/types/mcp";
+import { ChatMessage } from "@/types/file-system";
+import { MCPMessage, MCPMessageReply } from "@/types/mcp";
 import { Anthropic } from "@anthropic-ai/sdk";
 import {
   MessageParam,
@@ -54,11 +55,17 @@ class MCPClient {
       "message",
       async (message: Electron.MessageEvent) => {
         console.log("Received message from main process:", message);
+
+        const mcpMessage = message.data.message as MCPMessage;
+
         if (message.data.type === "mcp-message") {
-          const apiKey = message.data.message.payload.apiKey;
+          const apiKey = mcpMessage.payload.apiKey;
           this.anthropic = new Anthropic({ apiKey });
-          const query = message.data.message.payload.message;
-          const result = await this.processQuery(query);
+          const query = mcpMessage.payload.messages;
+          const result = await this.processQuery(
+            mcpMessage.payload.model,
+            query
+          );
           const reply: MCPMessageReply = {
             id: message.data.message.id,
             timestamp: message.data.message.timestamp,
@@ -73,18 +80,18 @@ class MCPClient {
     );
   }
 
-  private async processQuery(query: string) {
-    const messages: MessageParam[] = [
-      {
-        role: "user",
-        content: query,
-      },
-    ];
+  private async processQuery(model: string, messages: ChatMessage[]) {
+    const anthropicMessages: MessageParam[] = messages.map((message) => {
+      return {
+        role: message.role,
+        content: message.content,
+      };
+    });
 
     const response = await this.anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model,
       max_tokens: 1000,
-      messages,
+      messages: anthropicMessages,
       tools: this.tools,
     });
 
@@ -113,7 +120,7 @@ class MCPClient {
         });
 
         const response = await this.anthropic.messages.create({
-          model: "claude-3-5-sonnet-20241022",
+          model,
           max_tokens: 1000,
           messages,
         });

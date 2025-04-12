@@ -32,6 +32,21 @@ if (started) {
 
 const startMCPProcesses = () => {
   try {
+    if (mcpClientProcess && mcpServerProcess) {
+      console.error("MCP processes already started. Cannot start again.");
+      return;
+    }
+
+    if (mcpClientProcess) {
+      mcpClientProcess.cleanup();
+      mcpClientProcess = null;
+    }
+
+    if (mcpServerProcess) {
+      mcpServerProcess.cleanup();
+      mcpServerProcess = null;
+    }
+
     let mcpClientPath = path.join(__dirname, "mcp-client.mjs");
     let mcpServerPath = path.join(__dirname, "mcp-server.mjs");
     if (app.isPackaged) {

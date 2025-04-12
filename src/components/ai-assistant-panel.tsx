@@ -37,7 +37,7 @@ export function AIAssistantPanel({
     };
   }, []);
 
-  const sendToMCP = async (message: string) => {
+  const sendToMCP = async (messages: ChatMessageType[]) => {
     const anthropicKey = await window.electron.apiKeys.get("anthropic");
     if (!anthropicKey) {
       toast.error("No Anthropic API key found");
@@ -50,7 +50,7 @@ export function AIAssistantPanel({
       payload: {
         model: "claude-3-5-sonnet-20241022",
         apiKey: anthropicKey || "",
-        message,
+        messages,
       },
       timestamp: Date.now(),
     };
@@ -66,7 +66,7 @@ export function AIAssistantPanel({
     setMessages([...messages, { role: "user", content: inputMessage }]);
 
     // Send message to MCP client
-    sendToMCP(inputMessage);
+    sendToMCP([...messages, { role: "user", content: inputMessage }]);
 
     setInputMessage("");
   };
