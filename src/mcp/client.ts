@@ -67,8 +67,8 @@ class MCPClient {
             query
           );
           const reply: MCPMessageReply = {
-            id: message.data.message.id,
-            timestamp: message.data.message.timestamp,
+            id: mcpMessage.id,
+            timestamp: mcpMessage.timestamp,
             type: "mcp-message-reply",
             payload: {
               message: result,
