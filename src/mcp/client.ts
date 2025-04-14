@@ -18,7 +18,7 @@ class MCPClient {
     process.parentPort?.once(
       "message",
       async (message: Electron.MessageEvent) => {
-        console.log("Received message from main process:", message);
+        console.info("Received message from main process:", message);
         if (message.data.type === "start") {
           try {
             await this.setupMessageHandler(message);
@@ -31,7 +31,7 @@ class MCPClient {
   }
 
   private async setupMessageHandler(message: Electron.MessageEvent) {
-    console.log("Setting up message handler:", message);
+    console.info("Setting up message handler:", message);
     const [port] = message.ports;
     this.transport = new UtilityProcessClientTransport(port);
     this.mcp = new Client({
@@ -47,18 +47,18 @@ class MCPClient {
         input_schema: tool.inputSchema,
       };
     });
-    console.log(
-      "Connected to server with tools:",
-      this.tools.map(({ name }) => name)
+    console.info(
+      "MCP Client initialized with tools:",
+      this.tools.map((t) => t.name)
     );
     process.parentPort?.on(
       "message",
       async (message: Electron.MessageEvent) => {
-        console.log("Received message from main process:", message);
+        console.info("Received message from main process:", message);
 
-        const mcpMessage = message.data.message as MCPMessage;
+        const mcpMessage = message.data as MCPMessage;
 
-        if (message.data.type === "mcp-message") {
+        if (mcpMessage.type === "mcp-message") {
           const apiKey = mcpMessage.payload.apiKey;
           this.anthropic = new Anthropic({ apiKey });
           const query = mcpMessage.payload.messages;

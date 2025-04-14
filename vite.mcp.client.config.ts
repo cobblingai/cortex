@@ -10,11 +10,14 @@ export default defineConfig({
       fileName: "mcp-client",
     },
     rollupOptions: {
-      external: [
-        fileURLToPath(
-          new URL("src/lib/mcp/client/utility-process.js", import.meta.url)
-        ),
-      ],
+      // external: [
+      //   fileURLToPath(
+      //     new URL("src/lib/mcp/client/utility-process.js", import.meta.url)
+      //   ),
+      // ],
+      output: {
+        inlineDynamicImports: true,
+      },
     },
   },
   resolve: {

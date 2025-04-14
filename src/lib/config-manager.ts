@@ -2,6 +2,9 @@ import { safeStorage } from "electron";
 import fs from "fs";
 import path from "path";
 import { app } from "electron";
+import { Logger } from "@/lib/logger";
+
+const logger = Logger.getInstance();
 
 class ConfigManager {
   private configPath: string;
@@ -25,7 +28,7 @@ class ConfigManager {
       const decryptedData = safeStorage.decryptString(encryptedData);
       return JSON.parse(decryptedData);
     } catch (error) {
-      console.error("Error loading config:", error);
+      logger.error("Error loading config:", error);
       return {};
     }
   }
@@ -38,7 +41,7 @@ class ConfigManager {
       const encryptedData = safeStorage.encryptString(configStr);
       await fs.promises.writeFile(this.configPath, encryptedData);
     } catch (error) {
-      console.error("Error saving config:", error);
+      logger.error("Error saving config:", error);
       throw error;
     }
   }

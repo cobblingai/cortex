@@ -11,16 +11,16 @@ import { fileURLToPath } from "node:url";
 import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { configManager } from "@/lib/config-manager.js";
 import { template } from "./menu/template.js";
-// import { MCPProcess } from "./mcp/process.js";
 import { MCPProcess } from "./mcp/mcp-process.js";
+import { Logger } from "./lib/logger.js";
 
 const inDevelopment = !app.isPackaged;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const logger = Logger.getInstance();
 // MCP Process Management
-// let mcpProcess: UtilityProcess | null = null;
 let mcpClientProcess: MCPProcess | null = null;
 let mcpServerProcess: MCPProcess | null = null;
 let mainWindow: BrowserWindow | null = null;
@@ -33,7 +33,7 @@ if (started) {
 const startMCPProcesses = () => {
   try {
     if (mcpClientProcess && mcpServerProcess) {
-      console.error("MCP processes already started. Cannot start again.");
+      logger.error("MCP processes already started. Cannot start again.");
       return;
     }
 
@@ -60,14 +60,12 @@ const startMCPProcesses = () => {
     mcpClientProcess = new MCPProcess(mcpClientPath, [], port2);
 
     mcpClientProcess.onmessage = (message: MCPMessageReply) => {
-      console.log(
+      logger.info(
         "MCP Client Process Message reply sent to renderer:",
         message
       );
       if (!mainWindow) {
-        console.error(
-          "Main window not found. Cannot send message to renderer."
-        );
+        logger.error("Main window not found. Cannot send message to renderer.");
         return;
       }
       mainWindow.webContents.send("mcp-message-reply", message);
@@ -76,7 +74,7 @@ const startMCPProcesses = () => {
     mcpServerProcess.start();
     mcpClientProcess.start();
   } catch (error) {
-    console.error("Error starting MCP processes:", error);
+    logger.error("Error starting MCP processes:", error);
   }
 };
 
@@ -145,14 +143,14 @@ app.whenReady().then(() => {
 
   // Handle IPC messages from renderer
   ipcMain.on("mcp-message", (_event, message: MCPMessage) => {
-    console.log("MCP Message received from renderer:", message);
+    logger.info("MCP Message received from renderer:", message);
 
     startMCPProcesses();
 
     if (mcpClientProcess) {
       mcpClientProcess.send(message);
     } else {
-      console.error("MCP Client Process not found. Cannot send message.");
+      logger.error("MCP Client Process not found. Cannot send message.");
     }
   });
 
@@ -176,7 +174,7 @@ app.whenReady().then(() => {
   );
 
   ipcMain.on("open-settings", () => {
-    console.log("Open settings");
+    logger.info("Open settings");
     mainWindow?.webContents.send("open-settings");
   });
 });

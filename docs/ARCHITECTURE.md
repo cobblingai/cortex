@@ -20,6 +20,7 @@ cortex/
 │   │   │   ├── client/   # MCP client utilities
 │   │   │   └── server/   # MCP server utilities
 │   │   ├── config-manager.ts # Configuration management
+│   │   ├── logger.ts     # Logging functionality
 │   │   └── utils.ts      # General utility functions
 │   ├── routes/           # Application routes
 │   ├── styles/           # CSS and styling
@@ -152,6 +153,16 @@ The `lib` directory contains shared utility code and common functionality used a
   - Handles application configuration management
   - Provides secure storage for sensitive data
   - Manages environment-specific settings
+
+- **Logger** (`logger.ts`):
+
+  - Implements a singleton logger instance
+  - Supports multiple log levels (DEBUG, INFO, WARN, ERROR)
+  - Provides both console and file-based logging
+  - Configurable log levels and output destinations
+  - Includes process type information in log messages
+  - Supports structured logging with JSON formatting
+  - Automatically manages log file creation and rotation
 
 - **General Utilities** (`utils.ts`):
 

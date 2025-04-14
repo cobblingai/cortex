@@ -1,6 +1,9 @@
+import { Logger } from "@/lib/logger";
 import { MCPMessage, MCPMessageReply } from "@/types/mcp";
 import { utilityProcess, UtilityProcess } from "electron";
 import { MessagePortMain } from "electron";
+
+const logger = Logger.getInstance();
 
 class MCPProcess {
   private mcpProcess: UtilityProcess | null = null;
@@ -19,7 +22,7 @@ class MCPProcess {
   }
 
   start() {
-    console.log("Starting MCP process:", this.scriptPath);
+    logger.info(`Starting MCP process: ${this.scriptPath}`);
     if (this.mcpProcess) {
       throw new Error(`MCP process: ${this.scriptPath} already started`);
     }
@@ -31,9 +34,8 @@ class MCPProcess {
     this.mcpProcess.postMessage({ type: "start" }, [this.port]);
 
     this.mcpProcess.on("message", (message: MCPMessageReply) => {
-      console.log(
-        `Received message from MCP process: ${this.scriptPath}`,
-        message
+      logger.info(
+        `Received message from MCP process: ${this.scriptPath} ${message}`
       );
       if (message.type === "mcp-message-reply") {
         this.onmessage?.(message);
@@ -41,42 +43,42 @@ class MCPProcess {
     });
 
     this.mcpProcess.stderr?.on("data", (data) => {
-      const buffer = Buffer.from(data);
-      const string = buffer.toString();
-      console.error(`MCP process: ${this.scriptPath} stderr:`, string);
+      const s = data.toString("utf-8");
+      logger.error(`MCP process: ${this.scriptPath} stderr: ${s}`);
+    });
+    this.mcpProcess.stderr?.on("error", (error) => {
+      logger.error(`MCP process: ${this.scriptPath} stderr error: ${error}`);
     });
 
     this.mcpProcess.stdout?.on("data", (data) => {
-      const buffer = Buffer.from(data);
-      const string = buffer.toString();
-      console.log(`MCP process: ${this.scriptPath} stdout:`, string);
+      const s = data.toString("utf-8");
+      logger.info(`MCP process: ${this.scriptPath} stdout: ${s}`);
     });
 
     this.mcpProcess.on("error", (error) => {
-      console.error(`MCP process: ${this.scriptPath} error:`, error);
+      logger.error(`MCP process: ${this.scriptPath} error: ${error}`);
       this.onerror?.(error);
     });
 
     this.mcpProcess.on("exit", (code) => {
-      console.log(`MCP process: ${this.scriptPath} exited with code ${code}`);
+      logger.info(`MCP process: ${this.scriptPath} exited with code ${code}`);
       this.onclose?.();
     });
-
-    console.log("MCP process started:", this.scriptPath);
   }
 
   send(message: MCPMessage) {
-    console.log("Sending message to MCP process:", message);
     if (this.mcpProcess) {
-      this.mcpProcess.postMessage({ type: "mcp-message", message });
+      logger.info("Sending message to MCP process:", message);
+      this.mcpProcess.postMessage(message);
     } else {
-      console.error("MCP process not found. Cannot send message.");
+      logger.error("MCP process not found. Cannot send message.");
     }
   }
 
   cleanup() {
     if (this.mcpProcess) {
       this.mcpProcess.kill();
+      this.mcpProcess = null;
     }
   }
 }

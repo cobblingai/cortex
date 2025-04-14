@@ -221,7 +221,7 @@ server.tool(
 
 async function main() {
   process.parentPort?.on("message", async (message: Electron.MessageEvent) => {
-    console.log("Received message from main process:", message);
+    console.info("Received message from main process:", message);
     if (message.data.type === "start") {
       try {
         const [port] = message.ports;
@@ -243,21 +243,21 @@ async function main() {
   // };
   // await server.connect(transport);
 
-  console.error("Weather MCP Server running on stdio");
+  console.info("Weather MCP Server running on stdio");
 
   // Add process exit handlers
   process.on("SIGINT", () => {
-    console.error("Server process received SIGINT signal");
+    console.info("Server process received SIGINT signal");
     process.exit(0);
   });
 
   process.on("SIGTERM", () => {
-    console.error("Server process received SIGTERM signal");
+    console.info("Server process received SIGTERM signal");
     process.exit(0);
   });
 
   process.on("exit", (code) => {
-    console.error(`Server process is exiting with code ${code}`);
+    console.info(`Server process is exiting with code ${code}`);
   });
 }
 
