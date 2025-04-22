@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatMessage } from "@/components/chat-message";
@@ -14,6 +14,15 @@ interface AIAssistantPanelProps {
 export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
   const [messages, setMessages] = useState<ChatMessageType[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     const handleMCPResponse = (message: MCPMessageReply) => {
@@ -71,9 +80,9 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
       <header className="flex h-16 shrink-0 items-center justify-center border-b px-4">
         <h2 className="font-semibold">File Organization Assistant</h2>
       </header>
-      <div className="flex flex-col flex-1 h-full">
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="space-y-4 p-4">
             {messages.map((message, index) => (
               <ChatMessage
                 key={index}
@@ -81,27 +90,27 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
                 role={message.role}
               />
             ))}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
-
-        <div className="p-4 border-t">
-          <div className="flex gap-2">
-            <Textarea
-              placeholder="Ask for help organizing files..."
-              className="min-h-[80px] resize-none"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-            />
-          </div>
-          <div className="mt-2 flex justify-end">
-            <Button onClick={handleSendMessage}>Send</Button>
-          </div>
+      </div>
+      <div className="p-4 border-t">
+        <div className="flex gap-2">
+          <Textarea
+            placeholder="Ask for help organizing files..."
+            className="min-h-[80px] resize-none"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+          />
+        </div>
+        <div className="mt-2 flex justify-end">
+          <Button onClick={handleSendMessage}>Send</Button>
         </div>
       </div>
     </div>

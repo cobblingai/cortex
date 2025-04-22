@@ -44,12 +44,7 @@ function Index() {
         </div>
       </ResizablePanel>
       <ResizableHandle />
-      <ResizablePanel
-        defaultSize={40}
-        minSize={30}
-        className="h-screen"
-        style={{ overflow: "auto" }}
-      >
+      <ResizablePanel defaultSize={40} minSize={30} className="h-screen">
         <AIAssistantPanel initialMessages={initialMessages} />
       </ResizablePanel>
     </ResizablePanelGroup>
