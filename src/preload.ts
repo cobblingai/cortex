@@ -52,6 +52,7 @@ contextBridge.exposeInMainWorld("electron", {
       );
     },
   },
+
   settings: {
     open: () => ipcRenderer.send("open-settings"),
     removeListener: (callback: () => void) => {

@@ -1,22 +1,17 @@
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatMessage } from "@/components/chat-message";
 import type { ChatMessage as ChatMessageType } from "@/types/file-system";
 import type { MCPMessage, MCPMessageReply } from "@/types/mcp";
 import { toast } from "sonner";
-import { Sidebar, SidebarContent, SidebarHeader } from "./ui/sidebar";
+import { Button } from "@/components/ui/button";
 
-interface AIAssistantPanelProps extends React.ComponentProps<typeof Sidebar> {
+interface AIAssistantPanelProps {
   initialMessages: ChatMessageType[];
 }
 
-export function AIAssistantPanel({
-  initialMessages,
-  ...props
-}: AIAssistantPanelProps) {
+export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
   const [messages, setMessages] = useState<ChatMessageType[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState("");
 
@@ -72,45 +67,43 @@ export function AIAssistantPanel({
   };
 
   return (
-    <Sidebar {...props}>
-      <SidebarHeader className="flex border-b px-4 h-16 shrink-0 items-center justify-center">
+    <div className="flex flex-col h-full border-l">
+      <header className="flex h-16 shrink-0 items-center justify-center border-b px-4">
         <h2 className="font-semibold">File Organization Assistant</h2>
-      </SidebarHeader>
-      <SidebarContent>
-        <div className="flex flex-col border-l bg-card h-full">
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {messages.map((message, index) => (
-                <ChatMessage
-                  key={index}
-                  content={message.content}
-                  role={message.role}
-                />
-              ))}
-            </div>
-          </ScrollArea>
-
-          <div className="p-4 border-t">
-            <div className="flex gap-2">
-              <Textarea
-                placeholder="Ask for help organizing files..."
-                className="min-h-[80px] resize-none"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
+      </header>
+      <div className="flex flex-col flex-1 h-full">
+        <ScrollArea className="flex-1 p-4">
+          <div className="space-y-4">
+            {messages.map((message, index) => (
+              <ChatMessage
+                key={index}
+                content={message.content}
+                role={message.role}
               />
-            </div>
-            <div className="mt-2 flex justify-end">
-              <Button onClick={handleSendMessage}>Send</Button>
-            </div>
+            ))}
+          </div>
+        </ScrollArea>
+
+        <div className="p-4 border-t">
+          <div className="flex gap-2">
+            <Textarea
+              placeholder="Ask for help organizing files..."
+              className="min-h-[80px] resize-none"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+            />
+          </div>
+          <div className="mt-2 flex justify-end">
+            <Button onClick={handleSendMessage}>Send</Button>
           </div>
         </div>
-      </SidebarContent>
-    </Sidebar>
+      </div>
+    </div>
   );
 }
