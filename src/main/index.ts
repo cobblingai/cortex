@@ -4,7 +4,7 @@ import started from "electron-squirrel-startup";
 import { fileURLToPath } from "node:url";
 import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { configManager } from "@/lib/config-manager.js";
-import { template } from "./menu/template.js";
+import { getMenuTemplate } from "./menu/template.js";
 import { Logger } from "./utils/logger.js";
 import { MCPProcessManager } from "./mcp/mcp-process-manager.js";
 
@@ -79,8 +79,8 @@ const createWindow = () => {
   // }
 };
 
-const createAppMenu = () => {
-  const menu = Menu.buildFromTemplate(template);
+const createAppMenu = (onOpenSettings: () => void) => {
+  const menu = Menu.buildFromTemplate(getMenuTemplate(onOpenSettings));
   Menu.setApplicationMenu(menu);
 };
 
@@ -92,8 +92,8 @@ const createAppMenu = () => {
  * directly listening to that event in particular. See electron/electron#21972 for details.
  */
 app.whenReady().then(() => {
-  createAppMenu();
   createWindow();
+  createAppMenu(() => mainWindow?.webContents.send("open-settings"));
 
   app.on("activate", () => {
     // On OS X it's common to re-create a window in the app when the
@@ -131,10 +131,10 @@ app.whenReady().then(() => {
     }
   );
 
-  ipcMain.on("open-settings", () => {
-    logger.info("Open settings");
-    mainWindow?.webContents.send("open-settings");
-  });
+  // ipcMain.on("open-settings", () => {
+  //   logger.info("Open settings");
+  //   mainWindow?.webContents.send("open-settings");
+  // });
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

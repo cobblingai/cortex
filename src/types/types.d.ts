@@ -17,7 +17,6 @@ interface Window {
       removeListener(callback: (message: MCPMessageReply) => void): void;
     };
     settings: {
-      open(): void;
       onOpen(callback: () => void): void;
       removeListener(callback: () => void): void;
     };

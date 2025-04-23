@@ -1,8 +1,15 @@
-import { MenuItemConstructorOptions, app, ipcMain } from "electron";
+import {
+  MenuItemConstructorOptions,
+  app,
+  ipcMain,
+  BrowserWindow,
+} from "electron";
 
 const isMac = process.platform === "darwin";
 
-export const template: MenuItemConstructorOptions[] = [
+export const getMenuTemplate = (
+  onOpenSettings: () => void
+): MenuItemConstructorOptions[] => [
   // { role: 'appMenu' }
   ...(isMac
     ? [
@@ -14,7 +21,7 @@ export const template: MenuItemConstructorOptions[] = [
             {
               label: "Settings",
               click: () => {
-                window.electron.settings.open();
+                onOpenSettings();
               },
             },
             { role: "services" as const },

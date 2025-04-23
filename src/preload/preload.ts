@@ -54,7 +54,6 @@ contextBridge.exposeInMainWorld("electron", {
   },
 
   settings: {
-    open: () => ipcRenderer.send("open-settings"),
     onOpen: (callback: () => void) =>
       ipcRenderer.on("open-settings", () => callback()),
     removeListener: (callback: () => void) => {
