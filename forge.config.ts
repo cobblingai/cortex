@@ -13,7 +13,7 @@ const config: ForgeConfig = {
     executableName: pkg.productName,
     name: pkg.productName,
     asar: true,
-    extraResource: [".vite/build/mcp-server.mjs", ".vite/build/mcp-client.mjs"],
+    extraResource: [".vite/build/filesystem-es.js", ".vite/build/weather.js"],
     // osxSign: {
     //   identity: process.env.IDENTITY_MAS_CODE,
     //   provisioningProfile: "./build/MAS.provisionprofile",
@@ -43,21 +43,29 @@ const config: ForgeConfig = {
       build: [
         {
           // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
-          entry: "src/main.mts",
+          entry: "src/main/index.mts",
           config: "vite.main.config.ts",
           target: "main",
         },
         {
-          entry: "src/preload.ts",
+          entry: "src/preload/preload.ts",
           config: "vite.preload.config.ts",
           target: "preload",
         },
+        // {
+        //   entry: "src/scripts/servers/weather.ts",
+        //   config: "vite.mcp.server.config.ts",
+        // },
         {
-          entry: "src/mcp/server.ts",
-          config: "vite.mcp.server.config.ts",
+          entry: "src/scripts/servers/weather.ts",
+          config: "vite.mcp.server.weather.config.ts",
         },
         {
-          entry: "src/mcp/client.ts",
+          entry: "src/scripts/servers/filesystem.mts",
+          config: "vite.mcp.server.filesystem.config.ts",
+        },
+        {
+          entry: "src/scripts/client.ts",
           config: "vite.mcp.client.config.ts",
         },
       ],

@@ -4,17 +4,17 @@ import path from "node:path";
 // https://vitejs.dev/config
 export default defineConfig({
   build: {
+    target: "esnext",
     lib: {
-      entry: "src/scripts/client.ts",
-      name: "mcp-client",
-      fileName: "mcp-client",
+      entry: "src/scripts/servers/filesystem.mts",
+      name: "filesystem-server",
+      formats: ["es"],
+      fileName: (format, entryName) => {
+        return `${entryName}-${format}.js`;
+      },
     },
     rollupOptions: {
-      // external: [
-      //   fileURLToPath(
-      //     new URL("src/lib/mcp/client/utility-process.js", import.meta.url)
-      //   ),
-      // ],
+      external: ["electron", "fs", "path", "os", "zod", "zod-to-json-schema"],
       output: {
         inlineDynamicImports: true,
       },

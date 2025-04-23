@@ -7,7 +7,12 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    TanStackRouterVite({ target: "react", autoCodeSplitting: true }),
+    TanStackRouterVite({
+      target: "react",
+      autoCodeSplitting: true,
+      routesDirectory: "./src/renderer/routes",
+      generatedRouteTree: "./src/renderer/routeTree.gen.ts",
+    }),
     react(),
     tailwindcss(),
     // ...,

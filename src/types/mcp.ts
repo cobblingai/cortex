@@ -1,4 +1,4 @@
-import { ChatMessage } from "./file-system";
+import { ChatMessage } from "@/types/file-system";
 
 export interface MCPMessage {
   id: string;
