@@ -22,14 +22,14 @@ import {
 //   BreadcrumbPage,
 //   BreadcrumbSeparator,
 // } from "@/renderer/components/ui/breadcrumb";
-import { Button } from "@/renderer/components/ui/button";
+import { Button } from "@/renderer/components/ui/button.js";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-} from "@/renderer/components/ui/dialog";
+} from "@/renderer/components/ui/dialog.js";
 import {
   Sidebar,
   SidebarContent,
@@ -39,8 +39,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-} from "@/renderer/components/ui/sidebar";
-import { SettingsModelsContent } from "./settings-models-content";
+} from "@/renderer/components/ui/sidebar.js";
+import { SettingsModelsContent } from "./settings-models-content.js";
 import { useEffect } from "react";
 
 type NavItem = "Models";

@@ -1,12 +1,12 @@
-import { AIAssistantPanel } from "@/renderer/components/ai-assistant-panel";
-import { FileExplorer } from "@/renderer/components/file-explorer";
+import { AIAssistantPanel } from "@/renderer/components/ai-assistant-panel.js";
+import { FileExplorer } from "@/renderer/components/file-explorer.js";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/renderer/components/ui/resizable";
-import { initialFileSystem, initialMessages } from "@/data/sample-data";
-import { FileSystemItem } from "@/types/file-system";
+} from "@/renderer/components/ui/resizable.js";
+import { initialFileSystem, initialMessages } from "@/data/sample-data.js";
+import { FileSystemItem } from "@/types/file-system.js";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 

@@ -4,6 +4,11 @@ import { app } from "electron";
 import { MCPProcess } from "./mcp-process.js";
 import { Logger } from "../utils/logger.js";
 import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
+import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export interface MCPConfig {
   clientFileName: string;

@@ -1,17 +1,10 @@
-import {
-  app,
-  BrowserWindow,
-  ipcMain,
-  Menu,
-  MessageChannelMain,
-} from "electron";
+import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import path, { dirname } from "node:path";
 import started from "electron-squirrel-startup";
 import { fileURLToPath } from "node:url";
 import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { configManager } from "@/lib/config-manager.js";
 import { template } from "./menu/template.js";
-import { MCPProcess } from "./mcp/mcp-process.js";
 import { Logger } from "./utils/logger.js";
 import { MCPProcessManager } from "./mcp/mcp-process-manager.js";
 
@@ -23,9 +16,9 @@ const __dirname = dirname(__filename);
 const logger = Logger.getInstance();
 // MCP Process Management
 const mcpProcessManager = MCPProcessManager.getInstance({
-  clientFileName: "mcp-client.mjs",
+  clientFileName: "mcp-client.js",
   server: {
-    fileName: "filesystem.js",
+    fileName: "filesystem-es.js",
     args: ["/Users/chengchao/Downloads"],
   },
 });

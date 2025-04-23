@@ -8,9 +8,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/renderer/components/ui/form";
-import { Input } from "@/renderer/components/ui/input";
-import { Button } from "@/renderer/components/ui/button";
+} from "@/renderer/components/ui/form.js";
+import { Input } from "@/renderer/components/ui/input.js";
+import { Button } from "@/renderer/components/ui/button.js";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 const formSchema = z.object({

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Textarea } from "@/renderer/components/ui/textarea";
-import { ScrollArea } from "@/renderer/components/ui/scroll-area";
-import { ChatMessage } from "@/renderer/components/chat-message";
-import type { ChatMessage as ChatMessageType } from "@/types/chat";
-import type { MCPMessage, MCPMessageReply } from "@/types/mcp";
+import { Textarea } from "@/renderer/components/ui/textarea.js";
+import { ScrollArea } from "@/renderer/components/ui/scroll-area.js";
+import { ChatMessage } from "@/renderer/components/chat-message.js";
+import type { ChatMessage as ChatMessageType } from "@/types/chat.js";
+import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { toast } from "sonner";
-import { Button } from "@/renderer/components/ui/button";
+import { Button } from "@/renderer/components/ui/button.js";
 
 interface AIAssistantPanelProps {
   initialMessages: ChatMessageType[];

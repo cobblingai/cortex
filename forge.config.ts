@@ -6,7 +6,7 @@ import { MakerRpm } from "@electron-forge/maker-rpm";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
-import pkg from "./package.json";
+import pkg from "./package.json" with { type: "json" };
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -14,9 +14,9 @@ const config: ForgeConfig = {
     name: pkg.productName,
     asar: true,
     extraResource: [
-      ".vite/build/filesystem.js",
+      ".vite/build/filesystem-es.js",
       ".vite/build/weather.js",
-      ".vite/build/mcp-client.mjs",
+      ".vite/build/mcp-client.js",
     ],
     // osxSign: {
     //   identity: process.env.IDENTITY_MAS_CODE,
@@ -47,13 +47,13 @@ const config: ForgeConfig = {
       build: [
         {
           // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
-          entry: "src/main/index.mts",
-          config: "vite.main.config.ts",
+          entry: "src/main/index.ts",
+          config: "vite.main.config.mts",
           target: "main",
         },
         {
           entry: "src/preload/preload.ts",
-          config: "vite.preload.config.ts",
+          config: "vite.preload.config.mts",
           target: "preload",
         },
         // {
@@ -62,15 +62,15 @@ const config: ForgeConfig = {
         // },
         {
           entry: "src/scripts/servers/weather.ts",
-          config: "vite.mcp.server.weather.config.ts",
+          config: "vite.mcp.server.weather.config.mts",
         },
         {
-          entry: "src/scripts/servers/filesystem.mts",
-          config: "vite.mcp.server.filesystem.config.ts",
+          entry: "src/scripts/servers/filesystem.ts",
+          config: "vite.mcp.server.filesystem.config.mts",
         },
         {
           entry: "src/scripts/client.ts",
-          config: "vite.mcp.client.config.ts",
+          config: "vite.mcp.client.config.mts",
         },
       ],
       renderer: [

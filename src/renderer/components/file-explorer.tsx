@@ -1,8 +1,8 @@
-import { ScrollArea } from "@/renderer/components/ui/scroll-area";
-import { Button } from "@/renderer/components/ui/button";
+import { ScrollArea } from "@/renderer/components/ui/scroll-area.js";
+import { Button } from "@/renderer/components/ui/button.js";
 import { MessageSquare } from "lucide-react";
-import type { FileSystemItem as FileSystemItemType } from "@/types/file-system";
-import { FileSystemItem } from "./file-system-item";
+import type { FileSystemItem as FileSystemItemType } from "@/types/file-system.js";
+import { FileSystemItem } from "./file-system-item.js";
 
 interface FileExplorerProps {
   fileSystem: FileSystemItemType[];

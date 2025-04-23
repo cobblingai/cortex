@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 
 // Import the generated route tree
-import { routeTree } from "./routeTree.gen";
+import { routeTree } from "./routeTree.gen.js";
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {
