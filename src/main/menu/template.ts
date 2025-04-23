@@ -14,7 +14,7 @@ export const template: MenuItemConstructorOptions[] = [
             {
               label: "Settings",
               click: () => {
-                ipcMain.emit("open-settings");
+                window.electron.settings.open();
               },
             },
             { role: "services" as const },

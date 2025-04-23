@@ -18,6 +18,7 @@ interface Window {
     };
     settings: {
       open(): void;
+      onOpen(callback: () => void): void;
       removeListener(callback: () => void): void;
     };
   };

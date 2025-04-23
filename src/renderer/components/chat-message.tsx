@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-// Remove direct import of ReactMarkdown since we're using dynamic import
+import ReactMarkdown from "react-markdown";
 
 interface ChatMessageProps {
   content: string;
@@ -17,14 +16,6 @@ export function UserMessage({ content }: { content: string }) {
 }
 
 export function AssistantMessage({ content }: { content: string }) {
-  const [Markdown, setMarkdown] = useState<any>(null);
-
-  useEffect(() => {
-    import("react-markdown").then((module) => {
-      setMarkdown(() => module.default);
-    });
-  }, []);
-
   // Process the string to interpret escape sequences like \n
   const processEscapeSequences = (input: string): string => {
     // Use a regular expression to replace escaped newlines with actual newlines
@@ -32,17 +23,13 @@ export function AssistantMessage({ content }: { content: string }) {
     return input.replace(/\\n/g, "\n");
   };
 
-  if (!Markdown) return null;
   const processedText = processEscapeSequences(content);
 
   return (
     <div className="flex justify-start">
-      <div className="bg-muted p-3 rounded-lg max-w-[80%]">
-        <pre className="whitespace-pre-wrap font-mono text-sm p-4 bg-white rounded-lg border border-gray-200 shadow-sm max-w-3xl mx-auto overflow-auto">
-          {processedText}
-          {/* <Markdown>{formattedText}</Markdown> */}
-        </pre>
-      </div>
+      <pre className="whitespace-pre-wrap font-mono text-sm p-4 bg-muted rounded-lg border border-gray-200 shadow-sm mx-auto overflow-auto">
+        <ReactMarkdown>{processedText}</ReactMarkdown>
+      </pre>
     </div>
   );
 }

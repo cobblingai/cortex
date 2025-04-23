@@ -69,8 +69,9 @@ export function SettingsDialog() {
     React.useState<NavItem>("Models");
 
   useEffect(() => {
-    window.electron.settings.open();
-
+    window.electron.settings.onOpen(() => {
+      setOpen(true);
+    });
     return () => {
       window.electron.settings.removeListener(() => {});
     };

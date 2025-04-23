@@ -2,7 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { contextBridge, ipcRenderer } from "electron";
-import { MCPMessage } from "@/types/mcp";
+import { MCPMessage } from "@/types/mcp.js";
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -55,6 +55,8 @@ contextBridge.exposeInMainWorld("electron", {
 
   settings: {
     open: () => ipcRenderer.send("open-settings"),
+    onOpen: (callback: () => void) =>
+      ipcRenderer.on("open-settings", () => callback()),
     removeListener: (callback: () => void) => {
       ipcRenderer.removeListener("open-settings", () => callback());
     },
