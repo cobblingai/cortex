@@ -25,7 +25,7 @@ const logger = Logger.getInstance();
 const mcpProcessManager = MCPProcessManager.getInstance({
   clientFileName: "mcp-client.mjs",
   server: {
-    fileName: "filesystem-es.js",
+    fileName: "filesystem.js",
     args: ["/Users/chengchao/Downloads"],
   },
 });

@@ -13,7 +13,11 @@ const config: ForgeConfig = {
     executableName: pkg.productName,
     name: pkg.productName,
     asar: true,
-    extraResource: [".vite/build/filesystem-es.js", ".vite/build/weather.js"],
+    extraResource: [
+      ".vite/build/filesystem.js",
+      ".vite/build/weather.js",
+      ".vite/build/mcp-client.mjs",
+    ],
     // osxSign: {
     //   identity: process.env.IDENTITY_MAS_CODE,
     //   provisioningProfile: "./build/MAS.provisionprofile",

@@ -4,17 +4,17 @@ import path from "node:path";
 // https://vitejs.dev/config
 export default defineConfig({
   build: {
-    target: "esnext",
-    lib: {
-      entry: "src/scripts/servers/filesystem.mts",
-      name: "filesystem-server",
-      formats: ["es"],
-      fileName: (format, entryName) => {
-        return `${entryName}-${format}.js`;
-      },
-    },
+    // target: "esnext",
+    // lib: {
+    //   entry: "src/scripts/servers/filesystem.mts",
+    //   name: "filesystem-server",
+    //   formats: ["es"],
+    //   fileName: (format, entryName) => {
+    //     return `${entryName}-${format}.js`;
+    //   },
+    // },
     rollupOptions: {
-      external: ["electron", "fs", "path", "os", "zod", "zod-to-json-schema"],
+      external: ["electron", "fs", "path", "os"],
       output: {
         inlineDynamicImports: true,
       },
