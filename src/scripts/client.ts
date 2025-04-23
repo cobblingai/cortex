@@ -1,13 +1,13 @@
-import { UtilityProcessClientTransport } from "@/lib/mcp/client/utility-process";
-import { ChatMessage } from "@/types/chat";
-import { MCPMessage, MCPMessageReply } from "@/types/mcp";
+import { UtilityProcessClientTransport } from "@/lib/mcp/client/utility-process.js";
+import { ChatMessage } from "@/types/chat.js";
+import { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { Anthropic } from "@anthropic-ai/sdk";
 import {
   MessageParam,
   Tool,
 } from "@anthropic-ai/sdk/resources/messages/messages.mjs";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { SystemPrompt } from "./prompts/system-prompt";
+import { SystemPrompt } from "./prompts/system-prompt.js";
 
 class MCPClient {
   private mcp: Client;
@@ -91,7 +91,7 @@ class MCPClient {
 
     const response = await this.anthropic.messages.create({
       model,
-      max_tokens: 2048,
+      max_tokens: 8192,
       system: SystemPrompt,
       messages: anthropicMessages,
       tools: this.tools,

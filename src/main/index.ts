@@ -19,7 +19,7 @@ const mcpProcessManager = MCPProcessManager.getInstance({
   clientFileName: "mcp-client.js",
   server: {
     fileName: "filesystem-es.js",
-    args: ["/Users/chengchao/Downloads"],
+    args: [],
   },
 });
 let mainWindow: BrowserWindow | null = null;
@@ -74,9 +74,9 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  // if (inDevelopment) {
-  mainWindow.webContents.openDevTools();
-  // }
+  if (inDevelopment) {
+    mainWindow.webContents.openDevTools();
+  }
 };
 
 const createAppMenu = (onOpenSettings: () => void) => {

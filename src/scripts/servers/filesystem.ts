@@ -745,36 +745,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start server
 async function runServer() {
-  // Command line argument parsing
-  const args = process.argv.slice(2);
-  if (args.length === 0) {
-    console.error(
-      "Usage: mcp-server-filesystem <allowed-directory> [additional-directories...]"
-    );
-    process.exit(1);
-  }
-
-  // Store allowed directories in normalized form
-  const allowedDirectories = args.map((dir) =>
-    normalizePath(path.resolve(expandHome(dir)))
-  );
-
-  // Validate that all directories exist and are accessible
-  await Promise.all(
-    args.map(async (dir) => {
-      try {
-        const stats = await fs.stat(expandHome(dir));
-        if (!stats.isDirectory()) {
-          console.error(`Error: ${dir} is not a directory`);
-          process.exit(1);
-        }
-      } catch (error) {
-        console.error(`Error accessing directory ${dir}:`, error);
-        process.exit(1);
-      }
-    })
-  );
-
   process.parentPort?.on("message", async (message: Electron.MessageEvent) => {
     console.error("Received message from main process:", message);
     if (message.data.type === "start") {
@@ -782,7 +752,6 @@ async function runServer() {
       const transport = new UtilityProcessServerTransport(port);
       await server.connect(transport);
       console.error("Secure MCP Filesystem Server running on stdio");
-      console.error("Allowed directories:", allowedDirectories);
     } else {
       console.error("Received unknown message from main process:", message);
     }

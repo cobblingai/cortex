@@ -1,4 +1,4 @@
-import { UtilityProcessServerTransport } from "@/lib/mcp/server/utility-process";
+import { UtilityProcessServerTransport } from "@/lib/mcp/server/utility-process.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
