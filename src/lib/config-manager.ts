@@ -2,7 +2,7 @@ import { safeStorage } from "electron";
 import fs from "fs";
 import path from "path";
 import { app } from "electron";
-import { Logger } from "@/main/utils/logger";
+import { Logger } from "@/main/utils/logger.js";
 
 const logger = Logger.getInstance();
 
