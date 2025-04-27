@@ -6,7 +6,7 @@ import type { ChatMessage as ChatMessageType } from "@/types/chat.js";
 import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { toast } from "sonner";
 import { Button } from "@/renderer/components/ui/button.js";
-import { ViewMessage } from "@/types/view-message.js";
+import { ControllerMessage } from "@/types/controller-message.js";
 
 interface AIAssistantPanelProps {
   initialMessages: ChatMessageType[];
@@ -49,7 +49,7 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
       return;
     }
 
-    const viewMessage: ViewMessage = {
+    const controllerMessage: ControllerMessage = {
       id: crypto.randomUUID(),
       type: "new-task",
       payload: {
@@ -65,7 +65,7 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
     };
 
     // Send message to controller
-    window.electron.controller.send(viewMessage);
+    window.electron.controller.send(controllerMessage);
   };
 
   const handleSendMessage = () => {

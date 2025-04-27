@@ -1,6 +1,7 @@
-import { ControllerMessage } from "@/types/controller-message.js";
+import { ViewMessage } from "@/types/view-message.js";
 import { buildApiHandler } from "../api/index.js";
 import type { ApiProvider } from "@/types/api/index.js";
+import { TaskState } from "../task-state/index.js";
 
 export class Task {
   constructor(

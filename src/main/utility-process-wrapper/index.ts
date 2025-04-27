@@ -1,6 +1,6 @@
 import { Logger } from "@/main/utils/logger.js";
-import { ControllerMessage } from "@/types/controller-message.js";
 import { ViewMessage } from "@/types/view-message.js";
+import { ControllerMessage } from "@/types/controller-message.js";
 import { utilityProcess, UtilityProcess } from "electron";
 
 const logger = Logger.getInstance();
@@ -10,7 +10,7 @@ class UtilityProcessWrapper {
   private modulePath: string;
   private args: string[];
 
-  onmessage?: ((message: ControllerMessage) => Promise<void>) | undefined;
+  onmessage?: ((message: ViewMessage) => Promise<void>) | undefined;
   onerror?: ((error: Error | string) => void) | undefined;
   onclose?: (() => void) | undefined;
 
@@ -62,9 +62,9 @@ class UtilityProcessWrapper {
   }
 
   private listenToMessagesFromUtilityProcess(
-    callback: (message: ControllerMessage) => Promise<void>
+    callback: (message: ViewMessage) => Promise<void>
   ) {
-    this.process?.on("message", async (message: ControllerMessage) => {
+    this.process?.on("message", async (message: ViewMessage) => {
       await callback(message);
     });
   }

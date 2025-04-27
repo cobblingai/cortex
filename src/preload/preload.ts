@@ -57,17 +57,17 @@ contextBridge.exposeInMainWorld("electron", {
   },
 
   controller: {
-    send: (message: ViewMessage) =>
-      ipcRenderer.send(ipcChannels.view.message, message),
-    onControllerMessage: (callback: (message: ControllerMessage) => void) =>
+    send: (message: ControllerMessage) =>
+      ipcRenderer.send(ipcChannels.controller.message, message),
+    onViewMessage: (callback: (message: ViewMessage) => void) =>
       ipcRenderer.on(
         ipcChannels.controller.message,
-        (_event, message: ControllerMessage) => callback(message)
+        (_event, message: ViewMessage) => callback(message)
       ),
-    removeListener: (callback: (message: ControllerMessage) => void) => {
+    removeListener: (callback: (message: ViewMessage) => void) => {
       ipcRenderer.removeListener(
         ipcChannels.controller.message,
-        (_event, message: ControllerMessage) => callback(message)
+        (_event, message: ViewMessage) => callback(message)
       );
     },
   },

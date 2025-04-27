@@ -1,27 +1,25 @@
 import { z } from "zod";
-import { ApiProvider } from "@/types/api/index.js";
-
-const apiProviderSchema: z.ZodType<ApiProvider> = z.enum(["anthropic"]);
+import { uiMessageSchema } from "./chat.js";
 
 export const viewMessageSchema = z.union([
   z.object({
-    id: z.string(),
-    type: z.literal("new-task"),
+    type: z.literal("state"),
     payload: z.object({
-      text: z.string(),
-      images: z.array(z.string()),
-      context: z.object({
-        model: z.string(),
-        apiKey: z.string(),
-        apiProvider: apiProviderSchema,
+      state: z.object({
+        uiMessages: z.array(uiMessageSchema),
       }),
     }),
-    timestamp: z.number(),
   }),
   z.object({
-    type: z.literal("clear-task"),
+    type: z.literal("action"),
     payload: z.object({
-      taskId: z.string(),
+      action: z.string(),
+    }),
+  }),
+  z.object({
+    type: z.literal("ask-for-api-key"),
+    payload: z.object({
+      service: z.enum(["openai", "anthropic"]),
     }),
   }),
 ]);

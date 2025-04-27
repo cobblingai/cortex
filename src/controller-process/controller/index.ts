@@ -1,5 +1,5 @@
-import { ViewMessage } from "@/types/view-message.js";
 import { ControllerMessage } from "@/types/controller-message.js";
+import { ViewMessage } from "@/types/view-message.js";
 import { Task } from "../task/index.js";
 import { ApiProvider } from "@/types/api/index.js";
 
@@ -7,10 +7,10 @@ export class Controller {
   private task: Task | null = null;
 
   constructor(
-    private readonly postMessageToRenderer: (message: ControllerMessage) => void
+    private readonly postMessageToView: (message: ViewMessage) => void
   ) {}
 
-  async handleViewMessage(message: ViewMessage) {
+  async handleControllerMessage(message: ControllerMessage) {
     switch (message.type) {
       case "new-task":
         await this.initTask(

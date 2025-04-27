@@ -181,7 +181,7 @@ const initializeControllerProcess = () => {
     getUtilityProcessModulePath("controller-process-es.js"),
     []
   );
-  controllerProcess.onmessage = async (message: ControllerMessage) => {
+  controllerProcess.onmessage = async (message: ViewMessage) => {
     logger.info("Controller Process Message received from renderer:", message);
     mainWindow?.webContents.send(ipcChannels.controller.message, message);
   };
