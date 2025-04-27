@@ -17,7 +17,9 @@ process.parentPort.on("message", (message: Electron.MessageEvent) => {
 
   try {
     const viewMessage = viewMessageSchema.parse(message.data);
-    controller.handleViewMessage(viewMessage);
+    controller.handleViewMessage(viewMessage).catch((error) => {
+      console.error("[Controller] error handling view message:", error);
+    });
   } catch (error) {
     console.error("[Controller] error parsing message:", error);
   }

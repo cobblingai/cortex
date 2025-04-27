@@ -1,5 +1,5 @@
-import { Logger } from "@/main/utils/logger";
-import { MCPMessage, MCPMessageReply } from "@/types/mcp";
+import { Logger } from "@/main/utils/logger.js";
+import { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { utilityProcess, UtilityProcess } from "electron";
 import { MessagePortMain } from "electron";
 

@@ -1,6 +1,7 @@
 import { ViewMessage } from "@/types/view-message.js";
 import { ControllerMessage } from "@/types/controller-message.js";
 import { Task } from "../task/index.js";
+import { ApiProvider } from "@/types/api/index.js";
 
 export class Controller {
   private task: Task | null = null;
@@ -29,7 +30,7 @@ export class Controller {
     id: string,
     text: string,
     images: string[],
-    context: { model: string; apiKey: string }
+    context: { model: string; apiKey: string; apiProvider: ApiProvider }
   ) {
     await this.clearTask();
 

@@ -58,6 +58,7 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
         context: {
           model: "claude-3-5-sonnet-20241022",
           apiKey: anthropicKey || "",
+          apiProvider: "anthropic",
         },
       },
       timestamp: Date.now(),

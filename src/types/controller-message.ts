@@ -1,10 +1,13 @@
 import { z } from "zod";
+import { uiMessageSchema } from "./chat.js";
 
 export const controllerMessageSchema = z.union([
   z.object({
     type: z.literal("state"),
     payload: z.object({
-      state: z.string(),
+      state: z.object({
+        uiMessages: z.array(uiMessageSchema),
+      }),
     }),
   }),
   z.object({

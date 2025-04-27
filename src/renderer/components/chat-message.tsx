@@ -8,7 +8,7 @@ interface ChatMessageProps {
 export function UserMessage({ content }: { content: string }) {
   return (
     <div className="flex justify-start">
-      <div className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%]">
+      <div className="bg-primary text-primary-foreground p-3 rounded-lg">
         <p className="text-sm">{content}</p>
       </div>
     </div>

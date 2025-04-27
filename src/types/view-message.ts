@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { ApiProvider } from "@/types/api/index.js";
+
+const apiProviderSchema: z.ZodType<ApiProvider> = z.enum(["anthropic"]);
 
 export const viewMessageSchema = z.union([
   z.object({
@@ -10,6 +13,7 @@ export const viewMessageSchema = z.union([
       context: z.object({
         model: z.string(),
         apiKey: z.string(),
+        apiProvider: apiProviderSchema,
       }),
     }),
     timestamp: z.number(),

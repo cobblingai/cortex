@@ -1,11 +1,17 @@
 import { ControllerMessage } from "@/types/controller-message.js";
+import { buildApiHandler } from "../api/index.js";
+import type { ApiProvider } from "@/types/api/index.js";
 
 export class Task {
   constructor(
     private readonly id: string,
     private readonly text: string,
     private readonly images: string[],
-    private readonly context: { model: string; apiKey: string },
+    private readonly context: {
+      model: string;
+      apiKey: string;
+      apiProvider: ApiProvider;
+    },
     private readonly postMessageToRenderer: (message: ControllerMessage) => void
   ) {}
 
@@ -29,5 +35,10 @@ export class Task {
 
   private async execute() {
     console.log(`Task ${this.id} executing`);
+
+    const apiHandler = buildApiHandler({
+      apiProvider: this.context.apiProvider,
+      apiKey: this.context.apiKey,
+    });
   }
 }
