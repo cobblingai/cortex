@@ -6,6 +6,7 @@ import type { ChatMessage as ChatMessageType } from "@/types/chat.js";
 import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { toast } from "sonner";
 import { Button } from "@/renderer/components/ui/button.js";
+import { ViewMessage } from "@/types/view-message.js";
 
 interface AIAssistantPanelProps {
   initialMessages: ChatMessageType[];
@@ -41,26 +42,29 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
     };
   }, []);
 
-  const sendToMCP = async (messages: ChatMessageType[]) => {
+  const sendToController = async (message: string) => {
     const anthropicKey = await window.electron.apiKeys.get("anthropic");
     if (!anthropicKey) {
       toast.error("No Anthropic API key found");
       return;
     }
 
-    const mcpMessage: MCPMessage = {
+    const viewMessage: ViewMessage = {
       id: crypto.randomUUID(),
-      type: "mcp-message",
+      type: "new-task",
       payload: {
-        model: "claude-3-5-sonnet-20241022",
-        apiKey: anthropicKey || "",
-        messages,
+        text: message,
+        images: [],
+        context: {
+          model: "claude-3-5-sonnet-20241022",
+          apiKey: anthropicKey || "",
+        },
       },
       timestamp: Date.now(),
     };
 
-    // Send message to MCP client process
-    window.electron.mcp.send(mcpMessage);
+    // Send message to controller
+    window.electron.controller.send(viewMessage);
   };
 
   const handleSendMessage = () => {
@@ -69,8 +73,8 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
     // Add user message
     setMessages([...messages, { role: "user", content: inputMessage }]);
 
-    // Send message to MCP client
-    sendToMCP([...messages, { role: "user", content: inputMessage }]);
+    // Send message to controller
+    sendToController(inputMessage);
 
     setInputMessage("");
   };

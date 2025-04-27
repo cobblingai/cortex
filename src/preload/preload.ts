@@ -3,6 +3,9 @@
 
 import { contextBridge, ipcRenderer } from "electron";
 import { MCPMessage } from "@/types/mcp.js";
+import { ControllerMessage } from "@/types/controller-message.js";
+import { ViewMessage } from "@/types/view-message.js";
+import { ipcChannels } from "@/shared/ipc-channels.js";
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -49,6 +52,22 @@ contextBridge.exposeInMainWorld("electron", {
       ipcRenderer.removeListener(
         "mcp-message-reply",
         (_event, message: MCPMessage) => callback(message)
+      );
+    },
+  },
+
+  controller: {
+    send: (message: ViewMessage) =>
+      ipcRenderer.send(ipcChannels.view.message, message),
+    onControllerMessage: (callback: (message: ControllerMessage) => void) =>
+      ipcRenderer.on(
+        ipcChannels.controller.message,
+        (_event, message: ControllerMessage) => callback(message)
+      ),
+    removeListener: (callback: (message: ControllerMessage) => void) => {
+      ipcRenderer.removeListener(
+        ipcChannels.controller.message,
+        (_event, message: ControllerMessage) => callback(message)
       );
     },
   },

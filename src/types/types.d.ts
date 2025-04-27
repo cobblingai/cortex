@@ -16,6 +16,11 @@ interface Window {
       onReply(callback: (message: MCPMessageReply) => void): void;
       removeListener(callback: (message: MCPMessageReply) => void): void;
     };
+    controller: {
+      send(message: ViewMessage): void;
+      onControllerMessage(callback: (message: ControllerMessage) => void): void;
+      removeListener(callback: (message: ControllerMessage) => void): void;
+    };
     settings: {
       onOpen(callback: () => void): void;
       removeListener(callback: () => void): void;

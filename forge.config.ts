@@ -72,6 +72,10 @@ const config: ForgeConfig = {
           entry: "src/scripts/client.ts",
           config: "vite.mcp.client.config.mts",
         },
+        {
+          entry: "src/controller-process/index.ts",
+          config: "vite.controller.config.mts",
+        },
       ],
       renderer: [
         {

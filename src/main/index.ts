@@ -7,6 +7,10 @@ import { configManager } from "@/lib/config-manager.js";
 import { getMenuTemplate } from "./menu/template.js";
 import { Logger } from "./utils/logger.js";
 import { MCPProcessManager } from "./mcp/mcp-process-manager.js";
+import { UtilityProcessWrapper } from "./utility-process-wrapper/index.js";
+import { ControllerMessage } from "@/types/controller-message.js";
+import { ipcChannels } from "@/shared/ipc-channels.js";
+import { ViewMessage } from "@/types/view-message.js";
 
 const inDevelopment = !app.isPackaged;
 
@@ -14,6 +18,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const logger = Logger.getInstance();
+
+let controllerProcess: UtilityProcessWrapper | null = null;
+
 // MCP Process Management
 const mcpProcessManager = MCPProcessManager.getInstance({
   clientFileName: "mcp-client.js",
@@ -95,6 +102,8 @@ app.whenReady().then(() => {
   createWindow();
   createAppMenu(() => mainWindow?.webContents.send("open-settings"));
 
+  initializeControllerProcess();
+
   app.on("activate", () => {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -110,6 +119,11 @@ app.whenReady().then(() => {
     startMCPProcesses();
 
     mcpProcessManager.sendMessage(message);
+  });
+
+  ipcMain.on(ipcChannels.view.message, (_event, message: ViewMessage) => {
+    logger.info("View Message received from renderer:", message);
+    controllerProcess?.postMessageToUtilityProcess(message);
   });
 
   // API Key Management IPC Handlers
@@ -154,3 +168,22 @@ app.on("before-quit", () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+const getUtilityProcessModulePath = (filename: string): string => {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, filename);
+  }
+  return path.join(__dirname, filename);
+};
+
+const initializeControllerProcess = () => {
+  controllerProcess = new UtilityProcessWrapper(
+    getUtilityProcessModulePath("controller-process-es.js"),
+    []
+  );
+  controllerProcess.onmessage = async (message: ControllerMessage) => {
+    logger.info("Controller Process Message received from renderer:", message);
+    mainWindow?.webContents.send(ipcChannels.controller.message, message);
+  };
+  controllerProcess.start();
+};
