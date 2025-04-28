@@ -27,7 +27,7 @@ export function AssistantMessage({ content }: { content: string }) {
 
   return (
     <div className="flex justify-start">
-      <pre className="whitespace-pre-wrap font-mono text-sm p-4 bg-muted rounded-lg border border-gray-200 shadow-sm mx-auto overflow-auto">
+      <pre className="whitespace-pre-wrap font-mono text-sm p-3 bg-muted rounded-lg border border-gray-200 shadow-sm overflow-auto w-full">
         <ReactMarkdown>{processedText}</ReactMarkdown>
       </pre>
     </div>

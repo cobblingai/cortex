@@ -2,6 +2,7 @@ import { ViewMessage } from "@/types/view-message.js";
 import { buildApiHandler } from "../api/index.js";
 import type { ApiProvider } from "@/types/api/index.js";
 import { TaskState } from "../task-state/index.js";
+import { TellType, UIMessage } from "@/types/chat.js";
 
 export class Task {
   constructor(
@@ -13,7 +14,7 @@ export class Task {
       apiKey: string;
       apiProvider: ApiProvider;
     },
-    private readonly postMessageToRenderer: (message: ControllerMessage) => void
+    private readonly taskState: TaskState
   ) {}
 
   /**
@@ -40,6 +41,16 @@ export class Task {
     const apiHandler = buildApiHandler({
       apiProvider: this.context.apiProvider,
       apiKey: this.context.apiKey,
+    });
+
+    this.tellView({ type: "text", content: "Hello, world!" });
+  }
+
+  private tellView(message: { type: TellType; content: string }) {
+    this.taskState.addUIMessageAndPostToView({
+      type: "tell",
+      tellType: message.type,
+      content: message.content,
     });
   }
 }

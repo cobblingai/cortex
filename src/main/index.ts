@@ -8,9 +8,9 @@ import { getMenuTemplate } from "./menu/template.js";
 import { Logger } from "./utils/logger.js";
 import { MCPProcessManager } from "./mcp/mcp-process-manager.js";
 import { UtilityProcessWrapper } from "./utility-process-wrapper/index.js";
-import { ControllerMessage } from "@/types/controller-message.js";
 import { ipcChannels } from "@/shared/ipc-channels.js";
 import { ViewMessage } from "@/types/view-message.js";
+import { ControllerMessage } from "@/types/controller-message.js";
 
 const inDevelopment = !app.isPackaged;
 
@@ -121,10 +121,13 @@ app.whenReady().then(() => {
     mcpProcessManager.sendMessage(message);
   });
 
-  ipcMain.on(ipcChannels.view.message, (_event, message: ViewMessage) => {
-    logger.info("View Message received from renderer:", message);
-    controllerProcess?.postMessageToUtilityProcess(message);
-  });
+  ipcMain.on(
+    ipcChannels.controller.message,
+    (_event, message: ControllerMessage) => {
+      logger.info("Controller Message received from renderer:", message);
+      controllerProcess?.postMessageToUtilityProcess(message);
+    }
+  );
 
   // API Key Management IPC Handlers
   ipcMain.handle(
@@ -182,8 +185,8 @@ const initializeControllerProcess = () => {
     []
   );
   controllerProcess.onmessage = async (message: ViewMessage) => {
-    logger.info("Controller Process Message received from renderer:", message);
-    mainWindow?.webContents.send(ipcChannels.controller.message, message);
+    logger.info("Controller Process sending message to renderer:", message);
+    mainWindow?.webContents.send(ipcChannels.view.message, message);
   };
   controllerProcess.start();
 };

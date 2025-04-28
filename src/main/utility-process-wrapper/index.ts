@@ -69,7 +69,7 @@ class UtilityProcessWrapper {
     });
   }
 
-  postMessageToUtilityProcess(message: ViewMessage) {
+  postMessageToUtilityProcess(message: ControllerMessage) {
     if (this.process) {
       logger.info("Sending message to utility process:", message);
       this.process.postMessage(message);

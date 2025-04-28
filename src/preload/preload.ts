@@ -60,13 +60,12 @@ contextBridge.exposeInMainWorld("electron", {
     send: (message: ControllerMessage) =>
       ipcRenderer.send(ipcChannels.controller.message, message),
     onViewMessage: (callback: (message: ViewMessage) => void) =>
-      ipcRenderer.on(
-        ipcChannels.controller.message,
-        (_event, message: ViewMessage) => callback(message)
+      ipcRenderer.on(ipcChannels.view.message, (_event, message: ViewMessage) =>
+        callback(message)
       ),
     removeListener: (callback: (message: ViewMessage) => void) => {
       ipcRenderer.removeListener(
-        ipcChannels.controller.message,
+        ipcChannels.view.message,
         (_event, message: ViewMessage) => callback(message)
       );
     },

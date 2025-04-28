@@ -2,6 +2,7 @@ import { ControllerMessage } from "@/types/controller-message.js";
 import { ViewMessage } from "@/types/view-message.js";
 import { Task } from "../task/index.js";
 import { ApiProvider } from "@/types/api/index.js";
+import { TaskState } from "../task-state/index.js";
 
 export class Controller {
   private task: Task | null = null;
@@ -34,7 +35,8 @@ export class Controller {
   ) {
     await this.clearTask();
 
-    this.task = new Task(id, text, images, context, this.postMessageToRenderer);
+    const taskState = new TaskState(this.postMessageToView);
+    this.task = new Task(id, text, images, context, taskState);
     // fire and forget
     this.task.start();
   }

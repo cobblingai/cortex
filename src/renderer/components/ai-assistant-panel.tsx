@@ -7,6 +7,7 @@ import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { toast } from "sonner";
 import { Button } from "@/renderer/components/ui/button.js";
 import { ControllerMessage } from "@/types/controller-message.js";
+import { ViewMessage } from "@/types/view-message.js";
 
 interface AIAssistantPanelProps {
   initialMessages: ChatMessageType[];
@@ -39,6 +40,25 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
 
     return () => {
       window.electron.mcp.removeListener(handleMCPResponse);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleMessage = (message: ViewMessage) => {
+      if (message.type === "state") {
+        const newMessages: ChatMessageType[] =
+          message.payload.state.uiMessages.map((uiMessage) => ({
+            role: "assistant",
+            content: uiMessage.content,
+          }));
+        setMessages((prev) => [...prev, ...newMessages]);
+      }
+    };
+
+    window.electron.controller.onViewMessage(handleMessage);
+
+    return () => {
+      window.electron.controller.removeListener(handleMessage);
     };
   }, []);
 
