@@ -45,7 +45,9 @@ class UtilityProcessWrapper {
 
     this.process.stdout?.on("data", (data) => {
       const s = data.toString("utf-8");
-      logger.info(`Utility process: ${this.modulePath} stdout: ${s}`);
+      logger.info(
+        `Utility process: ${this.modulePath} stdout: ${JSON.stringify(s, null, 2)}`
+      );
     });
 
     this.process.on("error", (error) => {

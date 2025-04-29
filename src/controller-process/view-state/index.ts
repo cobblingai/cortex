@@ -1,7 +1,7 @@
 import { UIMessage } from "@/types/chat.js";
 import { ViewMessage } from "@/types/view-message.js";
 
-export class TaskState {
+export class ViewState {
   private readonly uiMessages: UIMessage[];
 
   constructor(

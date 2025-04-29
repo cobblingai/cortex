@@ -2,7 +2,10 @@ import { ControllerMessage } from "@/types/controller-message.js";
 import { ViewMessage } from "@/types/view-message.js";
 import { Task } from "../task/index.js";
 import { ApiProvider } from "@/types/api/index.js";
-import { TaskState } from "../task-state/index.js";
+import { ViewState } from "../view-state/index.js";
+import { AIState } from "../ai-state/index.js";
+import { AssistantMessages } from "../assistant-messages/index.js";
+import { AssistantMessageHandler } from "../assistant-message-handler/index.js";
 
 export class Controller {
   private task: Task | null = null;
@@ -35,8 +38,10 @@ export class Controller {
   ) {
     await this.clearTask();
 
-    const taskState = new TaskState(this.postMessageToView);
-    this.task = new Task(id, text, images, context, taskState);
+    const aiState = new AIState();
+    const viewState = new ViewState(this.postMessageToView);
+
+    this.task = new Task(id, text, images, context, viewState, aiState);
     // fire and forget
     this.task.start();
   }
