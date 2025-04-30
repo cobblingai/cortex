@@ -1,3 +1,5 @@
+import Anthropic from "@anthropic-ai/sdk";
+
 export const formatResponse = {
   noToolsUsed: () =>
     `[ERROR] You did not use a tool in your previous response! Please retry with a tool use.
@@ -10,6 +12,20 @@ If you have completed the user's task, use the attempt_completion tool.
 If you require additional information from the user, use the ask_followup_question tool. 
 Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. 
 (This is an automated message, so do not respond to it conversationally.)`,
+  toolResult: (
+    text: string,
+    images?: string[]
+  ): string | Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam> => {
+    if (images && images.length > 0) {
+      const textBlock: Anthropic.TextBlockParam = { type: "text", text };
+      const imageBlocks: Anthropic.ImageBlockParam[] =
+        formatImagesIntoBlocks(images);
+      // Placing images after text leads to better results
+      return [textBlock, ...imageBlocks];
+    } else {
+      return text;
+    }
+  },
 };
 
 const toolUseInstructionsReminder = `# Reminder: Instructions for Tool Use
@@ -31,3 +47,23 @@ I have completed the task...
 </attempt_completion>
 
 Always adhere to this format for all tool uses to ensure proper parsing and execution.`;
+
+const formatImagesIntoBlocks = (
+  images?: string[]
+): Anthropic.ImageBlockParam[] => {
+  return images
+    ? images.map((dataUrl) => {
+        // data:image/png;base64,base64string
+        const [rest, base64] = dataUrl.split(",");
+        const mimeType = rest.split(":")[1].split(";")[0];
+        return {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: mimeType,
+            data: base64,
+          },
+        } as Anthropic.ImageBlockParam;
+      })
+    : [];
+};

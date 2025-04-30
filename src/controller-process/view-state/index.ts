@@ -10,8 +10,11 @@ export class ViewState {
     this.uiMessages = [];
   }
 
-  addUIMessageAndPostToView(message: UIMessage) {
+  public addUIMessage(message: UIMessage) {
     this.uiMessages.push(message);
+  }
+
+  public postStateToView() {
     this.postMessageToView({
       type: "state",
       payload: {
@@ -20,5 +23,20 @@ export class ViewState {
         },
       },
     });
+  }
+
+  public postPartialUIMessage(message: UIMessage) {
+    this.postMessageToView({
+      type: "partial",
+      payload: { partial: message },
+    });
+  }
+
+  public lastUIMessage() {
+    return this.uiMessages.at(-1);
+  }
+
+  public getAllUIMessages(): readonly UIMessage[] {
+    return this.uiMessages;
   }
 }

@@ -5,19 +5,23 @@ export interface ChatMessage {
   content: string;
 }
 
-export const askTypeSchema = z.enum(["text", "image"]);
+export const askTypeSchema = z.enum(["text", "image", "followup"]);
 export const tellTypeSchema = z.enum(["text", "image"]);
 
 export const uiMessageSchema = z.union([
   z.object({
+    id: z.string(),
     type: z.literal("ask"),
     askType: askTypeSchema,
     content: z.string(),
+    isPartial: z.boolean().optional(),
   }),
   z.object({
+    id: z.string(),
     type: z.literal("tell"),
     tellType: tellTypeSchema,
     content: z.string(),
+    isPartial: z.boolean().optional(),
   }),
 ]);
 

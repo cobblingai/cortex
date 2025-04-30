@@ -8,12 +8,16 @@ import { toast } from "sonner";
 import { Button } from "@/renderer/components/ui/button.js";
 import { ControllerMessage } from "@/types/controller-message.js";
 import { ViewMessage } from "@/types/view-message.js";
+import { useContextProvider } from "../context/context-provider.js";
 
 interface AIAssistantPanelProps {
   initialMessages: ChatMessageType[];
 }
 
 export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
+  const { uiMessages } = useContextProvider();
+  console.log("uiMessages", uiMessages);
+
   const [messages, setMessages] = useState<ChatMessageType[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);

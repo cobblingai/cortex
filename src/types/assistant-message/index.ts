@@ -17,7 +17,7 @@ export const toolUseNames = [
   // "browser_action",
   "use_mcp_tool",
   // "access_mcp_resource",
-  // "ask_followup_question",
+  "ask_followup_question",
   // "plan_mode_respond",
   // "load_mcp_documentation",
   "attempt_completion",

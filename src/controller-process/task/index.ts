@@ -15,7 +15,7 @@ type UserContentBlock = Anthropic.ContentBlockParam;
 export class Task {
   private readonly assistantMessages: AssistantMessages;
   private readonly assistantMessageHandler: AssistantMessageHandler;
-
+  private isAborted: boolean = false;
   constructor(
     private readonly id: string,
     private readonly text: string,
@@ -30,7 +30,8 @@ export class Task {
   ) {
     this.assistantMessages = new AssistantMessages();
     this.assistantMessageHandler = new AssistantMessageHandler(
-      this.assistantMessages
+      this.assistantMessages,
+      this
     );
   }
 
@@ -50,6 +51,7 @@ export class Task {
 
   public abort() {
     console.log(`Task ${this.id} aborted`);
+    this.isAborted = true;
   }
 
   private async execute() {
@@ -108,11 +110,63 @@ export class Task {
     );
   }
 
-  private tellView(message: { type: TellType; content: string }) {
-    this.viewState.addUIMessageAndPostToView({
-      type: "tell",
-      tellType: message.type,
-      content: message.content,
-    });
+  public tellUser(message: {
+    type: TellType;
+    content: string;
+    isPartial?: boolean;
+  }) {
+    if (this.isAborted) {
+      return;
+    }
+
+    if (message.isPartial !== undefined) {
+      const lastUIMessage = this.viewState.lastUIMessage();
+      const isUpdatingLastUIMessage =
+        lastUIMessage &&
+        lastUIMessage.isPartial &&
+        lastUIMessage.type === "tell" &&
+        lastUIMessage.tellType === message.type;
+
+      if (message.isPartial) {
+        if (isUpdatingLastUIMessage) {
+          // update the last message
+          lastUIMessage.content += message.content;
+          this.viewState.postPartialUIMessage(lastUIMessage);
+        } else {
+          // this is a new message, so we need to add it to the view state
+          this.viewState.addUIMessage({
+            id: crypto.randomUUID(),
+            type: "tell",
+            tellType: message.type,
+            content: message.content,
+            isPartial: true,
+          });
+          this.viewState.postStateToView();
+        }
+      } else {
+        if (isUpdatingLastUIMessage) {
+          // update the last message
+          lastUIMessage.content += message.content;
+          lastUIMessage.isPartial = false;
+          this.viewState.postPartialUIMessage(lastUIMessage);
+        } else {
+          this.viewState.addUIMessage({
+            id: crypto.randomUUID(),
+            type: "tell",
+            tellType: message.type,
+            content: message.content,
+          });
+          this.viewState.postStateToView();
+        }
+      }
+    }
+  }
+
+  public askUser(type: string, message: string) {
+    return { text: "", images: [] };
+  }
+
+  public getViewState() {
+    return this.viewState;
   }
 }

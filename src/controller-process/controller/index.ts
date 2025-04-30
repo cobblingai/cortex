@@ -4,8 +4,6 @@ import { Task } from "../task/index.js";
 import { ApiProvider } from "@/types/api/index.js";
 import { ViewState } from "../view-state/index.js";
 import { AIState } from "../ai-state/index.js";
-import { AssistantMessages } from "../assistant-messages/index.js";
-import { AssistantMessageHandler } from "../assistant-message-handler/index.js";
 
 export class Controller {
   private task: Task | null = null;
