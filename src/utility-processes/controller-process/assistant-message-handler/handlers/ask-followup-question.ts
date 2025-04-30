@@ -1,11 +1,7 @@
-import { removeClosingTag } from "@/controller-process/utils/remove-closing-tag.js";
-import { ViewState } from "@/controller-process/view-state/index.js";
-import { formatResponse } from "@/main/core/prompts/responses.js";
+import { removeClosingTag } from "@/utility-processes/controller-process/utils/remove-closing-tag.js";
+import { ViewState } from "@/utility-processes/controller-process/view-state/index.js";
 import { findLast, parsePartialArrayString } from "@/shared/utils.js";
-import {
-  AssistantMessageContentBlock,
-  ToolUse,
-} from "@/types/assistant-message/index.js";
+import { ToolUse } from "@/types/assistant-message/index.js";
 import { AskQuestion } from "@/types/view-message.js";
 
 export async function handleAskFollowupQuestion(

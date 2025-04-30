@@ -4,7 +4,7 @@ import path from "node:path";
 export default defineConfig({
   build: {
     lib: {
-      entry: "src/controller-process/index.ts",
+      entry: "src/utility-processes/controller-process/index.ts",
       name: "controller-process",
       fileName: (format) => {
         return `controller-process-${format}.js`;
