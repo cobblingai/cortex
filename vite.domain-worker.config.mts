@@ -4,10 +4,10 @@ import path from "node:path";
 export default defineConfig({
   build: {
     lib: {
-      entry: "src/utility-processes/controller-process/index.ts",
-      name: "controller-process",
+      entry: "src/utility-processes/domain-worker/index.ts",
+      name: "domain-worker",
       fileName: (format) => {
-        return `controller-process-${format}.js`;
+        return `domain-worker-${format}.js`;
       },
     },
     rollupOptions: {

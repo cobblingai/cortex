@@ -3,7 +3,10 @@
 
 import { contextBridge, ipcRenderer } from "electron";
 import { MCPMessage } from "@/types/mcp.js";
-import { ControllerMessage } from "@/types/controller-message.js";
+import {
+  ControllerMessage,
+  InitializeTaskMessage,
+} from "@/types/controller-message.js";
 import { ViewMessage } from "@/types/view-message.js";
 import { ipcChannels } from "@/shared/ipc-channels.js";
 
@@ -77,5 +80,11 @@ contextBridge.exposeInMainWorld("electron", {
     removeListener: (callback: () => void) => {
       ipcRenderer.removeListener("open-settings", () => callback());
     },
+  },
+
+  taskApi: {
+    initialize: (message: InitializeTaskMessage) =>
+      ipcRenderer.invoke(ipcChannels.task.initialize, message),
+    abort: () => ipcRenderer.invoke(ipcChannels.task.abort),
   },
 });

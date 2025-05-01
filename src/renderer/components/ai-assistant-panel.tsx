@@ -6,7 +6,10 @@ import type { ChatMessage as ChatMessageType } from "@/types/chat.js";
 import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { toast } from "sonner";
 import { Button } from "@/renderer/components/ui/button.js";
-import { ControllerMessage } from "@/types/controller-message.js";
+import {
+  ControllerMessage,
+  InitializeTaskMessage,
+} from "@/types/controller-message.js";
 import { ViewMessage } from "@/types/view-message.js";
 import { useContextProvider } from "../context/context-provider.js";
 
@@ -73,9 +76,26 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
       return;
     }
 
-    const controllerMessage: ControllerMessage = {
-      id: crypto.randomUUID(),
-      type: "new-task",
+    // const controllerMessage: ControllerMessage = {
+    //   id: crypto.randomUUID(),
+    //   type: "new-task",
+    //   payload: {
+    //     text: message,
+    //     images: [],
+    //     context: {
+    //       model: "claude-3-5-sonnet-20241022",
+    //       apiKey: anthropicKey || "",
+    //       apiProvider: "anthropic",
+    //     },
+    //   },
+    //   timestamp: Date.now(),
+    // };
+
+    // // Send message to controller
+    // window.electron.controller.send(controllerMessage);
+
+    const initializeTaskMessage: InitializeTaskMessage = {
+      type: "initialize-task",
       payload: {
         text: message,
         images: [],
@@ -85,11 +105,14 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
           apiProvider: "anthropic",
         },
       },
+      id: crypto.randomUUID(),
       timestamp: Date.now(),
     };
 
-    // Send message to controller
-    window.electron.controller.send(controllerMessage);
+    const result = await window.electron.taskApi.initialize(
+      initializeTaskMessage
+    );
+    console.log("result", result);
   };
 
   const handleSendMessage = () => {

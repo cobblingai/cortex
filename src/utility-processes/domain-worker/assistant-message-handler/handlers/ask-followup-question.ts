@@ -1,5 +1,5 @@
-import { removeClosingTag } from "@/utility-processes/controller-process/utils/remove-closing-tag.js";
-import { ViewState } from "@/utility-processes/controller-process/view-state/index.js";
+import { removeClosingTag } from "@/utility-processes/domain-worker/utils/remove-closing-tag.js";
+import { ViewState } from "@/utility-processes/domain-worker/view-state/index.js";
 import { findLast, parsePartialArrayString } from "@/shared/utils.js";
 import { ToolUse } from "@/types/assistant-message/index.js";
 import { AskQuestion } from "@/types/view-message.js";

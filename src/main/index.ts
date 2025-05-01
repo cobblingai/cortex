@@ -11,6 +11,9 @@ import { UtilityProcessWrapper } from "./utility-process-wrapper/index.js";
 import { ipcChannels } from "@/shared/ipc-channels.js";
 import { ViewMessage } from "@/types/view-message.js";
 import { ControllerMessage } from "@/types/controller-message.js";
+import { spawnDomainWorker } from "./processes.js";
+import { registerTaskController } from "./ipc/controllers/task-controller.js";
+import { registerViewEvents } from "./ipc/events/view-events.js";
 
 const inDevelopment = !app.isPackaged;
 
@@ -100,9 +103,19 @@ const createAppMenu = (onOpenSettings: () => void) => {
  */
 app.whenReady().then(() => {
   createWindow();
+  if (!mainWindow?.webContents) {
+    logger.error("Main window not found. Cannot register view events.");
+    return;
+  }
+
   createAppMenu(() => mainWindow?.webContents.send("open-settings"));
 
-  initializeControllerProcess();
+  // initializeControllerProcess();
+
+  const domainWorker = spawnDomainWorker();
+
+  registerTaskController(domainWorker);
+  registerViewEvents(domainWorker, mainWindow.webContents);
 
   app.on("activate", () => {
     // On OS X it's common to re-create a window in the app when the
