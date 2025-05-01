@@ -3,7 +3,7 @@ import { Controller } from "./controller/index.js";
 import { ViewMessage } from "@/types/view-message.js";
 import { ResponseMessage } from "./types.js";
 import { RequestMessage } from "./types.js";
-import * as taskService from "./services/task/services.js";
+import * as taskService from "./services/task/service.js";
 
 if (!process.parentPort) {
   console.error("[Models service] must be spawned via utilityProcess.fork()");
