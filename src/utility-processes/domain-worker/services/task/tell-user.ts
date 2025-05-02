@@ -20,7 +20,7 @@ export function tellUser(
     if (message.isPartial) {
       if (isUpdatingLastUIMessage) {
         // update the last message
-        lastUIMessage.content += message.content;
+        lastUIMessage.content = message.content;
         viewState.postPartialUIMessage(lastUIMessage);
       } else {
         // this is a new message, so we need to add it to the view state
@@ -36,7 +36,7 @@ export function tellUser(
     } else {
       if (isUpdatingLastUIMessage) {
         // update the last message
-        lastUIMessage.content += message.content;
+        lastUIMessage.content = message.content;
         lastUIMessage.isPartial = false;
         viewState.postPartialUIMessage(lastUIMessage);
       } else {

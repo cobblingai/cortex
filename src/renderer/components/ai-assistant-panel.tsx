@@ -33,41 +33,31 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
     scrollToBottom();
   }, [messages]);
 
+  // useEffect(() => {
+  //   const handleMCPResponse = (message: MCPMessageReply) => {
+  //     if (message.type === "mcp-message-reply") {
+  //       setMessages((prev) => [
+  //         ...prev,
+  //         { role: "assistant", content: message.payload.message },
+  //       ]);
+  //     }
+  //   };
+
+  //   window.electron.mcp.onReply(handleMCPResponse);
+
+  //   return () => {
+  //     window.electron.mcp.removeListener(handleMCPResponse);
+  //   };
+  // }, []);
+
   useEffect(() => {
-    const handleMCPResponse = (message: MCPMessageReply) => {
-      if (message.type === "mcp-message-reply") {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: message.payload.message },
-        ]);
-      }
-    };
-
-    window.electron.mcp.onReply(handleMCPResponse);
-
-    return () => {
-      window.electron.mcp.removeListener(handleMCPResponse);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleMessage = (message: ViewMessage) => {
-      if (message.type === "state") {
-        const newMessages: ChatMessageType[] =
-          message.payload.state.uiMessages.map((uiMessage) => ({
-            role: "assistant",
-            content: uiMessage.content,
-          }));
-        setMessages((prev) => [...prev, ...newMessages]);
-      }
-    };
-
-    window.electron.controller.onViewMessage(handleMessage);
-
-    return () => {
-      window.electron.controller.removeListener(handleMessage);
-    };
-  }, []);
+    setMessages(
+      uiMessages.map((uiMessage) => ({
+        role: "assistant",
+        content: uiMessage.content,
+      }))
+    );
+  }, [uiMessages]);
 
   const sendToController = async (message: string) => {
     const anthropicKey = await window.electron.apiKeys.get("anthropic");

@@ -11,6 +11,7 @@ import { runBlockProducer } from "./block-producer.js";
 import { TellType } from "@/types/chat.js";
 import { handleTextBlock } from "./assistant-message-handlers/text-block-handler.js";
 import { handleToolUseBlock } from "./assistant-message-handlers/too-use-block-handler.js";
+import cloneDeep from "clone-deep";
 
 type UserContentBlock = Anthropic.TextBlockParam | Anthropic.ImageBlockParam;
 
@@ -67,29 +68,23 @@ export class Task {
         this.aiState.getMessages()
       );
 
-      // 2) set up a queue and start producer + consumer in parallel
+      // 2) set up a queue and consume blocks
       const queue = new AsyncQueue<AssistantMessageContentBlock>();
+      queue.consume(async (block) => {
+        if (block.type === "text") {
+          handleTextBlock(this, cloneDeep(block));
+        } else {
+          handleToolUseBlock(this, cloneDeep(block));
+        }
+
+        if (block.partial) {
+          return "peekAndPause";
+        }
+        return "advance";
+      });
 
       // Producer: parses every text chunk into blocks (including partials)
-      const producer = runBlockProducer(stream, queue);
-
-      // Consumer: handles each block in FIFO order
-      const consumer = (async () => {
-        while (true) {
-          const { value: block, done } = await queue.next();
-          if (done) break;
-
-          if (block.type === "text") {
-            await handleTextBlock(this, block);
-          } else {
-            await handleToolUseBlock(this, block);
-          }
-        }
-        // once the queue is drained, signal “all done”
-        this.finishStreamPresentation();
-      })();
-
-      await Promise.all([producer, consumer]);
+      await runBlockProducer(stream, queue);
 
       break;
 
@@ -104,6 +99,6 @@ export class Task {
   }
 
   private finishStreamPresentation() {
-    this.viewState.postStateToView();
+    // this.viewState.postStateToView();
   }
 }

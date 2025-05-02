@@ -30,8 +30,33 @@ export const ContextProvider = ({
   });
 
   const handleMessage = useCallback((message: ViewMessage) => {
-    if (message.type === "state") {
-      setState(message.payload.state);
+    switch (message.type) {
+      case "state":
+        setState(message.payload.state);
+        break;
+      case "partial":
+        const partialMessage = message.payload.partial;
+        setState((prev) => {
+          const messageIndexToUpdate = prev.uiMessages.findIndex(
+            (m) => m.id === partialMessage.id
+          );
+          if (messageIndexToUpdate !== -1) {
+            return {
+              ...prev,
+              uiMessages: [
+                ...prev.uiMessages.slice(0, messageIndexToUpdate),
+                partialMessage,
+                ...prev.uiMessages.slice(messageIndexToUpdate + 1),
+              ],
+            };
+          } else {
+            return {
+              ...prev,
+              uiMessages: [...prev.uiMessages, partialMessage],
+            };
+          }
+        });
+        break;
     }
   }, []);
 

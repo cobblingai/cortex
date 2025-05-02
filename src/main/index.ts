@@ -14,6 +14,7 @@ import { ControllerMessage } from "@/types/controller-message.js";
 import { spawnDomainWorker } from "./processes.js";
 import { registerTaskController } from "./ipc/controllers/task-controller.js";
 import { registerViewEvents } from "./ipc/events/view-events.js";
+import { registerStdoutStderrEvents } from "./ipc/events/stdout-stderr-events.js";
 
 const inDevelopment = !app.isPackaged;
 
@@ -116,6 +117,7 @@ app.whenReady().then(() => {
 
   registerTaskController(domainWorker);
   registerViewEvents(domainWorker, mainWindow.webContents);
+  registerStdoutStderrEvents(domainWorker, logger);
 
   app.on("activate", () => {
     // On OS X it's common to re-create a window in the app when the

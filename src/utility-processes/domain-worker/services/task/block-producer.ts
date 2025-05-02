@@ -13,20 +13,14 @@ export async function runBlockProducer(
   queue: AsyncQueue<AssistantMessageContentBlock>
 ) {
   let buffer = "";
-  let emittedCount = 0;
 
   for await (const chunk of stream) {
     if (chunk.type !== "text") continue;
     buffer += chunk.text;
-
     // re-parse entire conversation so far
     const blocks = parseAssistantMessage(buffer);
 
-    // emit every new block (including partials)
-    while (emittedCount < blocks.length) {
-      queue.push(blocks[emittedCount]);
-      emittedCount++;
-    }
+    queue.replace(blocks);
   }
 
   // when stream closes, re-emit any final block updates
@@ -34,15 +28,7 @@ export async function runBlockProducer(
     ...b,
     partial: false,
   }));
-  // if a block was partial before, and now final, re-emit it
-  for (let i = 0; i < finalBlocks.length; i++) {
-    if (i < emittedCount) {
-      queue.push(finalBlocks[i]);
-    } else {
-      // brand-new tail block
-      queue.push(finalBlocks[i]);
-    }
-  }
+  queue.replace(finalBlocks);
 
   queue.end();
 }

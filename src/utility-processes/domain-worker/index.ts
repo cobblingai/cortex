@@ -1,5 +1,4 @@
 import { controllerMessageSchema } from "@/types/controller-message.js";
-import { Controller } from "./controller/index.js";
 import { ViewMessage } from "@/types/view-message.js";
 import { ResponseMessage } from "./types.js";
 import { RequestMessage } from "./types.js";
