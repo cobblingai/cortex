@@ -1,5 +1,6 @@
 import { InitializeTaskMessage } from "@/types/controller-message.js";
 import { Task } from "./entity.js";
+import { ViewMessage } from "@/types/view-message.js";
 
 let currentTask: Task | null = null;
 
@@ -11,7 +12,14 @@ export async function initialize(message: InitializeTaskMessage) {
     currentTask = null;
   }
 
-  currentTask = new Task("initialized", message.payload.text);
+  currentTask = new Task(
+    "initialized",
+    message.payload.text,
+    message.payload.context,
+    (message: ViewMessage) => {
+      process.parentPort.postMessage(message);
+    }
+  );
   // Don't await this, it will block the main thread
   currentTask.runAgenticLoop();
 
