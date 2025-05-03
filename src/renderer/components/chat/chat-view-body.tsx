@@ -1,16 +1,19 @@
 import { useContextProvider } from "@/renderer/context/context-provider.js";
+import { Virtuoso } from "react-virtuoso";
+import { useCallback } from "react";
+import { UIMessage } from "@/types/chat.js";
+import { ChatMessage } from "./chat-message.js";
 
 export default function ChatViewBody() {
   const { task, history } = useContextProvider();
+
+  const itemContent = useCallback((index: number, message: UIMessage) => {
+    return <ChatMessage message={message} />;
+  }, []);
+
   if (!task) {
     return null;
   }
 
-  return (
-    <div className="flex flex-col flex-1 overflow-y-auto">
-      {history.map((message) => (
-        <div key={message.id}>{message.content}</div>
-      ))}
-    </div>
-  );
+  return <Virtuoso data={history} itemContent={itemContent} />;
 }
