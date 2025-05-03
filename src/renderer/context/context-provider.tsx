@@ -8,7 +8,12 @@ import {
 } from "react";
 
 import { ViewMessage } from "@/types/view-message.js";
-interface ContextType extends AppState {}
+import { UIMessage } from "@/types/chat.js";
+
+interface ContextType extends AppState {
+  task: UIMessage | undefined;
+  history: UIMessage[];
+}
 
 export const Context = createContext<ContextType | null>(null);
 
@@ -68,8 +73,11 @@ export const ContextProvider = ({
     };
   }, [handleMessage]);
 
-  const contextValue: ContextType = {
-    ...state,
-  };
-  return <Context.Provider value={contextValue}>{children}</Context.Provider>;
+  const task = state.uiMessages.at(0);
+  const history = state.uiMessages.slice(1);
+  return (
+    <Context.Provider value={{ ...state, task, history }}>
+      {children}
+    </Context.Provider>
+  );
 };

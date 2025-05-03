@@ -1,12 +1,7 @@
 import { useContextProvider } from "@/renderer/context/context-provider.js";
-import { useMemo } from "react";
 
 export default function ChatViewHeader() {
-  const { uiMessages } = useContextProvider();
-  // if the first message is not a task, then the app is in a bad state
-  const task = useMemo(() => {
-    return uiMessages.at(0);
-  }, [uiMessages]);
+  const { task } = useContextProvider();
 
   return (
     <div className="flex items-center justify-between p-2 w-full">
