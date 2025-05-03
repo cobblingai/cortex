@@ -31,4 +31,6 @@ export async function runBlockProducer(
   queue.replace(finalBlocks);
 
   queue.end();
+
+  return buffer.length > 0;
 }

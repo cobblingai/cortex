@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 export class AIState {
-  private readonly messages: Anthropic.Messages.MessageParam[];
+  private messages: Anthropic.Messages.MessageParam[];
 
   constructor() {
     this.messages = [];
@@ -11,7 +11,11 @@ export class AIState {
     this.messages.push(message);
   }
 
-  getMessages() {
+  getMessages(): readonly Anthropic.Messages.MessageParam[] {
     return this.messages;
+  }
+
+  clear() {
+    this.messages = [];
   }
 }

@@ -3,9 +3,9 @@ import { ApiProvider } from "@/types/api/index.js";
 
 const apiProviderSchema: z.ZodType<ApiProvider> = z.enum(["anthropic"]);
 
-export const initializeTaskSchema = z.object({
+export const newTaskSchema = z.object({
   id: z.string(),
-  type: z.literal("initialize-task"),
+  type: z.literal("new-task"),
   payload: z.object({
     text: z.string(),
     images: z.array(z.string()),
@@ -41,5 +41,5 @@ export const controllerMessageSchema = z.union([
   }),
 ]);
 
-export type InitializeTaskMessage = z.infer<typeof initializeTaskSchema>;
+export type NewTaskMessage = z.infer<typeof newTaskSchema>;
 export type ControllerMessage = z.infer<typeof controllerMessageSchema>;

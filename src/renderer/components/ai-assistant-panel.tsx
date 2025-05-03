@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/renderer/components/ui/button.js";
 import {
   ControllerMessage,
-  InitializeTaskMessage,
+  NewTaskMessage,
 } from "@/types/controller-message.js";
 import { ViewMessage } from "@/types/view-message.js";
 import { useContextProvider } from "../context/context-provider.js";
@@ -54,7 +54,7 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
     setMessages(
       uiMessages.map((uiMessage) => ({
         role: "assistant",
-        content: uiMessage.content,
+        content: uiMessage.content || "",
       }))
     );
   }, [uiMessages]);
@@ -84,8 +84,8 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
     // // Send message to controller
     // window.electron.controller.send(controllerMessage);
 
-    const initializeTaskMessage: InitializeTaskMessage = {
-      type: "initialize-task",
+    const newTaskMessage: NewTaskMessage = {
+      type: "new-task",
       payload: {
         text: message,
         images: [],
@@ -99,9 +99,7 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
       timestamp: Date.now(),
     };
 
-    const result = await window.electron.taskApi.initialize(
-      initializeTaskMessage
-    );
+    const result = await window.electron.taskApi.newTask(newTaskMessage);
     console.log("result", result);
   };
 

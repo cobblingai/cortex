@@ -6,7 +6,7 @@ export const ipcChannels = {
     message: "view-message",
   },
   task: {
-    initialize: "task:initialize",
+    newTask: "task:new-task",
     abort: "task:abort",
   },
 };

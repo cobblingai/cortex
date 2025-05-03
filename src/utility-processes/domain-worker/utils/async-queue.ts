@@ -6,19 +6,16 @@ export class AsyncQueue<T> {
   private isDraining = false;
   private index = 0;
 
+  // keep a list of resolvers to call when the queue goes idle
+  private idleResolvers: Array<() => void> = [];
+
   /**
    * Register your single consumer.  As soon as there’s an item at `index`,
    * we’ll call it.  The returned DrainDecision controls whether we bump
    * `index` or pause.
    */
-  public consume(fn: (item: T) => Promise<DrainDecision>) {
-    this.consumerFn = fn;
-    this.tryDrain();
-  }
-
-  /** Add one more item at the end, then (re)start draining if needed */
-  public push(item: T) {
-    this.items.push(item);
+  public registerConsumer(handler: (item: T) => Promise<DrainDecision>) {
+    this.consumerFn = handler;
     this.tryDrain();
   }
 
@@ -37,6 +34,23 @@ export class AsyncQueue<T> {
     this.consumerFn = undefined;
     this.isDraining = false;
     this.index = 0;
+
+    // resolve any pending idle promises
+    this.resolveIdle();
+  }
+
+  /**
+   * Returns a promise that resolves once the consumer has
+   * drained (or paused on a partial block) and there's no
+   * active drain in progress.
+   */
+  public onIdle(): Promise<void> {
+    if (!this.isDraining && this.index >= this.items.length) {
+      return Promise.resolve();
+    }
+    return new Promise((res) => {
+      this.idleResolvers.push(res);
+    });
   }
 
   private tryDrain() {
@@ -65,6 +79,14 @@ export class AsyncQueue<T> {
       }
 
       this.isDraining = false;
+      // once we've exited the loop, the queue is idle
+      this.resolveIdle();
     })();
+  }
+
+  /** resolve and clear all queued idle-promise resolvers */
+  private resolveIdle() {
+    for (const r of this.idleResolvers) r();
+    this.idleResolvers = [];
   }
 }

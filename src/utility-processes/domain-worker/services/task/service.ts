@@ -1,11 +1,11 @@
-import { InitializeTaskMessage } from "@/types/controller-message.js";
+import { NewTaskMessage } from "@/types/controller-message.js";
 import { Task } from "./entity.js";
 import { ViewMessage } from "@/types/view-message.js";
 
 let currentTask: Task | null = null;
 
-export async function initialize(message: InitializeTaskMessage) {
-  console.log("initialize", message);
+export async function newTask(message: NewTaskMessage) {
+  console.log("newTask", message);
   if (currentTask) {
     console.log("aborting previous task:", currentTask.id);
     currentTask.abort();
@@ -20,8 +20,7 @@ export async function initialize(message: InitializeTaskMessage) {
       process.parentPort.postMessage(message);
     }
   );
-  // Don't await this, it will block the main thread
-  currentTask.runAgenticLoop();
+  currentTask.start();
 
   return {
     id: currentTask.id,

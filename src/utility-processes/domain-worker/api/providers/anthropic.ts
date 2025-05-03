@@ -23,7 +23,7 @@ export class AnthropicHandler implements ApiHandler {
 
   async *createMessage(
     systemPrompt: string,
-    messages: Anthropic.Messages.MessageParam[]
+    messages: readonly Anthropic.Messages.MessageParam[]
   ): ApiStream {
     const model = this.getModel();
     let stream: AnthropicStream<Anthropic.RawMessageStreamEvent>;
@@ -133,7 +133,7 @@ export class AnthropicHandler implements ApiHandler {
           max_tokens: model.info.maxTokens || 8192,
           temperature: 0,
           system: [{ text: systemPrompt, type: "text" }],
-          messages,
+          messages: messages as Anthropic.Messages.MessageParam[],
           // tools,
           // tool_choice: { type: "auto" },
           stream: true,

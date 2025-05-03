@@ -2,7 +2,7 @@ import { UIMessage } from "@/types/chat.js";
 import { ViewMessage } from "@/types/view-message.js";
 
 export class ViewState {
-  private readonly uiMessages: UIMessage[];
+  private uiMessages: UIMessage[];
 
   constructor(
     private readonly postMessageToView: (message: ViewMessage) => void
@@ -38,5 +38,9 @@ export class ViewState {
 
   public getAllUIMessages(): readonly UIMessage[] {
     return this.uiMessages;
+  }
+
+  public clear() {
+    this.uiMessages = [];
   }
 }

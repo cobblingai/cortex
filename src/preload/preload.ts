@@ -5,7 +5,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import { MCPMessage } from "@/types/mcp.js";
 import {
   ControllerMessage,
-  InitializeTaskMessage,
+  NewTaskMessage,
 } from "@/types/controller-message.js";
 import { ViewMessage } from "@/types/view-message.js";
 import { ipcChannels } from "@/shared/ipc-channels.js";
@@ -83,8 +83,8 @@ contextBridge.exposeInMainWorld("electron", {
   },
 
   taskApi: {
-    initialize: (message: InitializeTaskMessage) =>
-      ipcRenderer.invoke(ipcChannels.task.initialize, message),
+    newTask: (message: NewTaskMessage) =>
+      ipcRenderer.invoke(ipcChannels.task.newTask, message),
     abort: () => ipcRenderer.invoke(ipcChannels.task.abort),
   },
 });

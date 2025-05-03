@@ -1,8 +1,8 @@
 import { TextContent } from "@/types/assistant-message/index.js";
-import { Task } from "../entity.js";
+import { ViewState } from "@/utility-processes/domain-worker/view-state/index.js";
 import { tellUser } from "../tell-user.js";
 
-export function handleTextBlock(task: Task, block: TextContent) {
+export function handleTextBlock(block: TextContent, viewState: ViewState) {
   let content = block.content;
   if (!content) {
     return;
@@ -50,6 +50,6 @@ export function handleTextBlock(task: Task, block: TextContent) {
       content,
       isPartial: block.partial,
     },
-    task.viewState
+    viewState
   );
 }

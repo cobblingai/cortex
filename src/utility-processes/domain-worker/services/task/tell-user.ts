@@ -4,7 +4,7 @@ import { ViewState } from "../../view-state/index.js";
 export function tellUser(
   message: {
     type: TellType;
-    content: string;
+    content?: string;
     isPartial?: boolean;
   },
   viewState: ViewState

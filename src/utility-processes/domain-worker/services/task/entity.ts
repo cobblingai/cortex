@@ -12,6 +12,10 @@ import { TellType } from "@/types/chat.js";
 import { handleTextBlock } from "./assistant-message-handlers/text-block-handler.js";
 import { handleToolUseBlock } from "./assistant-message-handlers/too-use-block-handler.js";
 import cloneDeep from "clone-deep";
+import { ApiStreamChunk } from "@/types/api/transform/stream.js";
+import { parseAssistantMessage } from "./parser.js";
+import { formatResponse } from "../../prompts/responses.js";
+import { runBlockConsumer } from "./block-consumer.js";
 
 type UserContentBlock = Anthropic.TextBlockParam | Anthropic.ImageBlockParam;
 
@@ -51,54 +55,125 @@ export class Task {
     this.isAborted = true;
   }
 
-  public async runAgenticLoop() {
+  public start() {
+    this.startAsync().catch((error) => {
+      console.error("[Task] error starting:", error);
+    });
+  }
+
+  private async startAsync() {
+    this.status = "running";
+    this.aiState.clear();
+    this.viewState.clear();
+
+    this.viewState.postStateToView();
+
     let nextUserContentBlocks: UserContentBlock[] = [
       { type: "text", text: `<task>\n${this.text}\n</task>` },
     ];
 
     while (!this.isAborted) {
+      const didComplete = await this.runAgenticLoop(nextUserContentBlocks);
+
+      if (didComplete) {
+        break;
+      }
+
+      nextUserContentBlocks = [
+        {
+          type: "text",
+          text: formatResponse.noToolsUsed(),
+        },
+      ];
+    }
+  }
+
+  private async runAgenticLoop(initialUserContentBlocks: UserContentBlock[]) {
+    let nextUserContentBlocks = initialUserContentBlocks;
+
+    while (true) {
+      if (this.isAborted) {
+        return true;
+      }
+
+      if (nextUserContentBlocks.length === 0) {
+        console.log("no more user content blocks");
+        return true;
+      }
+
+      nextUserContentBlocks.push({
+        type: "text",
+        text: this.getEnvironmentDetails(),
+      });
+
+      // 1) Send API request and stream response
+      this.userMessageContent = [];
+      let didReceiveAnyContent = false;
       this.aiState.addMessage({
         role: "user",
         content: nextUserContentBlocks,
       });
 
-      const systemPrompt = await SYSTEM_PROMPT();
-      const stream = this.apiHandler.createMessage(
-        systemPrompt,
-        this.aiState.getMessages()
+      const queue = new AsyncQueue<AssistantMessageContentBlock>();
+      queue.registerConsumer((block) =>
+        runBlockConsumer(block, this.viewState)
       );
 
-      // 2) set up a queue and consume blocks
-      const queue = new AsyncQueue<AssistantMessageContentBlock>();
-      queue.consume(async (block) => {
-        if (block.type === "text") {
-          handleTextBlock(this, cloneDeep(block));
-        } else {
-          handleToolUseBlock(this, cloneDeep(block));
-        }
+      try {
+        const stream = this.startApiStream(this.aiState.getMessages());
+        // Producer: parses every text chunk into blocks (including partials)
+        didReceiveAnyContent = await runBlockProducer(stream, queue);
+      } catch (error) {
+        console.error("[Task] error running agentic loop:", error);
+        this.status = "failed";
+        this.viewState.postStateToView();
+        return true;
+      }
 
-        if (block.partial) {
-          return "peekAndPause";
-        }
-        return "advance";
-      });
+      // 2) If the model returned nothing at all, stop
+      if (!didReceiveAnyContent) {
+        return false;
+      }
 
-      // Producer: parses every text chunk into blocks (including partials)
-      await runBlockProducer(stream, queue);
-
-      break;
-
-      // // 5) check for completion signal in the collected userMessageContent
-      // if (this.userMessageContent.some((b) => b.signalsCompletion)) {
-      //   break; // exit the loop → task completed
-      // }
+      // 3) Wait until all assistant content has been presented
+      await queue.onIdle();
 
       nextUserContentBlocks = this.userMessageContent;
-      this.userMessageContent = [];
     }
   }
 
-  private finishStreamPresentation() {
-    // this.viewState.postStateToView();
+  private startApiStream(messages: readonly Anthropic.Messages.MessageParam[]) {
+    const systemPrompt = SYSTEM_PROMPT();
+    const stream = this.apiHandler.createMessage(systemPrompt, messages);
+
+    return stream;
+  }
+
+  getEnvironmentDetails() {
+    let details = "";
+    // Add current time information with timezone
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+      hour12: true,
+    });
+    const timeZone = formatter.resolvedOptions().timeZone;
+    const timeZoneOffset = -now.getTimezoneOffset() / 60; // Convert to hours and invert sign to match conventional notation
+    const timeZoneOffsetStr = `${timeZoneOffset >= 0 ? "+" : ""}${timeZoneOffset}:00`;
+    details += `\n\n# Current Time\n${formatter.format(now)} (${timeZone}, UTC${timeZoneOffsetStr})`;
+
+    details += "\n\n# Current Mode";
+    // if (this.chatSettings.mode === "plan") {
+    //   details += "\nPLAN MODE\n" + formatResponse.planModeInstructions();
+    // } else {
+    //   details += "\nACT MODE";
+    // }
+    details += "\nACT MODE";
+    return `<environment_details>${details.trim()}</environment_details>`;
   }
 }

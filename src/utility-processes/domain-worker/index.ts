@@ -29,7 +29,7 @@ if (!process.parentPort) {
 
 const registry: Record<string, Record<string, Function>> = {
   task: {
-    initialize: taskService.initialize,
+    newTask: taskService.newTask,
     abort: taskService.abort,
   },
 };

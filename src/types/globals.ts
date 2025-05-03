@@ -1,6 +1,6 @@
 import type {
   ControllerMessage,
-  InitializeTaskMessage,
+  NewTaskMessage,
 } from "@/types/controller-message.js";
 import type { ViewMessage } from "@/types/view-message.js";
 import { MCPMessageReply } from "./mcp.js";
@@ -32,7 +32,7 @@ declare global {
         removeListener(callback: () => void): void;
       };
       taskApi: {
-        initialize(message: InitializeTaskMessage): Promise<any>;
+        newTask(message: NewTaskMessage): Promise<any>;
         abort(): Promise<void>;
       };
     };

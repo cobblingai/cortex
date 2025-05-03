@@ -19,7 +19,7 @@ export type ApiConfiguration = ApiHandlerOptions & {
 export interface ApiHandler {
   createMessage(
     systemPrompt: string,
-    messages: Anthropic.Messages.MessageParam[]
+    messages: readonly Anthropic.Messages.MessageParam[]
   ): ApiStream;
   getModel(): { id: string; info: ModelInfo };
   getApiStreamUsage?(): Promise<ApiStreamUsageChunk | undefined>;
