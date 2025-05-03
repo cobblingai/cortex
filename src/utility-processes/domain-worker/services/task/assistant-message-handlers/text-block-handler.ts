@@ -47,7 +47,7 @@ export function handleTextBlock(block: TextContent, viewState: ViewState) {
   tellUser(
     {
       type: "text",
-      content,
+      text: content,
       isPartial: block.partial,
     },
     viewState

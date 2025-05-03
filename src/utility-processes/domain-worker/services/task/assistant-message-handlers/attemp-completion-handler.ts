@@ -20,7 +20,7 @@ export function handleAttemptCompletionBlock(
         tellUser(
           {
             type: "completion_result",
-            content: removeClosingTag(block, "result", result),
+            text: removeClosingTag(block, "result", result),
             isPartial: true,
           },
           viewState
@@ -30,7 +30,7 @@ export function handleAttemptCompletionBlock(
       tellUser(
         {
           type: "completion_result",
-          content: result,
+          text: result,
           isPartial: false,
         },
         viewState

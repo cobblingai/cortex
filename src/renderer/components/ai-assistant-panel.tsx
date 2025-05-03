@@ -3,16 +3,11 @@ import { Textarea } from "@/renderer/components/ui/textarea.js";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area.js";
 import { ChatMessage } from "@/renderer/components/chat-message.js";
 import type { ChatMessage as ChatMessageType } from "@/types/chat.js";
-import type { MCPMessage, MCPMessageReply } from "@/types/mcp.js";
 import { toast } from "sonner";
 import { Button } from "@/renderer/components/ui/button.js";
-import {
-  ControllerMessage,
-  NewTaskMessage,
-} from "@/types/controller-message.js";
-import { ViewMessage } from "@/types/view-message.js";
+import { NewTaskMessage } from "@/types/controller-message.js";
 import { useContextProvider } from "../context/context-provider.js";
-
+import ChatView from "./chat/chat-view.js";
 interface AIAssistantPanelProps {
   initialMessages: ChatMessageType[];
 }
@@ -33,23 +28,6 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
     scrollToBottom();
   }, [messages]);
 
-  // useEffect(() => {
-  //   const handleMCPResponse = (message: MCPMessageReply) => {
-  //     if (message.type === "mcp-message-reply") {
-  //       setMessages((prev) => [
-  //         ...prev,
-  //         { role: "assistant", content: message.payload.message },
-  //       ]);
-  //     }
-  //   };
-
-  //   window.electron.mcp.onReply(handleMCPResponse);
-
-  //   return () => {
-  //     window.electron.mcp.removeListener(handleMCPResponse);
-  //   };
-  // }, []);
-
   useEffect(() => {
     setMessages(
       uiMessages.map((uiMessage) => ({
@@ -65,24 +43,6 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
       toast.error("No Anthropic API key found");
       return;
     }
-
-    // const controllerMessage: ControllerMessage = {
-    //   id: crypto.randomUUID(),
-    //   type: "new-task",
-    //   payload: {
-    //     text: message,
-    //     images: [],
-    //     context: {
-    //       model: "claude-3-5-sonnet-20241022",
-    //       apiKey: anthropicKey || "",
-    //       apiProvider: "anthropic",
-    //     },
-    //   },
-    //   timestamp: Date.now(),
-    // };
-
-    // // Send message to controller
-    // window.electron.controller.send(controllerMessage);
 
     const newTaskMessage: NewTaskMessage = {
       type: "new-task",
@@ -120,7 +80,8 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
       <header className="flex h-16 shrink-0 items-center justify-center border-b px-4">
         <h2 className="font-semibold">File Organization Assistant</h2>
       </header>
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <ChatView />
+      {/* <div className="flex flex-col flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <div className="space-y-4 p-4">
             {messages.map((message, index) => (
@@ -152,7 +113,7 @@ export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
         <div className="mt-2 flex justify-end">
           <Button onClick={handleSendMessage}>Send</Button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

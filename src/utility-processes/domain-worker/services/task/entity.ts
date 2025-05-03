@@ -16,6 +16,7 @@ import { ApiStreamChunk } from "@/types/api/transform/stream.js";
 import { parseAssistantMessage } from "./parser.js";
 import { formatResponse } from "../../prompts/responses.js";
 import { runBlockConsumer } from "./block-consumer.js";
+import { tellUser } from "./tell-user.js";
 
 type UserContentBlock = Anthropic.TextBlockParam | Anthropic.ImageBlockParam;
 
@@ -67,6 +68,13 @@ export class Task {
     this.viewState.clear();
 
     this.viewState.postStateToView();
+    tellUser(
+      {
+        type: "text",
+        text: this.text,
+      },
+      this.viewState
+    );
 
     let nextUserContentBlocks: UserContentBlock[] = [
       { type: "text", text: `<task>\n${this.text}\n</task>` },
