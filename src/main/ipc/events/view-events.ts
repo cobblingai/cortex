@@ -1,4 +1,3 @@
-import { callWorker } from "@/main/utils/call-worker.js";
 import { ipcChannels } from "@/shared/ipc-channels.js";
 import { ViewMessage } from "@/types/view-message.js";
 import { UtilityProcess, WebContents } from "electron";

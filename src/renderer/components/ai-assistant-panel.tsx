@@ -14,7 +14,6 @@ interface AIAssistantPanelProps {
 
 export function AIAssistantPanel({ initialMessages }: AIAssistantPanelProps) {
   const { uiMessages } = useContextProvider();
-  console.log("uiMessages", uiMessages);
 
   const [messages, setMessages] = useState<ChatMessageType[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState("");

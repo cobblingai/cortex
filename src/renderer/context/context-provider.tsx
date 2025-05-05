@@ -13,6 +13,7 @@ import { UIMessage } from "@/types/chat.js";
 interface ContextType extends AppState {
   task: UIMessage | undefined;
   history: UIMessage[];
+  lastMessage: UIMessage | undefined;
 }
 
 export const Context = createContext<ContextType | null>(null);
@@ -75,8 +76,9 @@ export const ContextProvider = ({
 
   const task = state.uiMessages.at(0);
   const history = state.uiMessages.slice(1);
+  const lastMessage = state.uiMessages.at(-1);
   return (
-    <Context.Provider value={{ ...state, task, history }}>
+    <Context.Provider value={{ ...state, task, history, lastMessage }}>
       {children}
     </Context.Provider>
   );

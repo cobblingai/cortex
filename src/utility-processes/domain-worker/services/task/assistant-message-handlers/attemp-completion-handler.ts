@@ -1,11 +1,13 @@
 import { ToolUse } from "@/types/assistant-message/index.js";
-import { ViewState } from "@/utility-processes/domain-worker/view-state/index.js";
-import { tellUser } from "../tell-user.js";
+import { ViewState } from "@/utility-processes/domain-worker/ui/view-state.js";
+import { tellUser } from "../user-interaction/tell-user.js";
 import { removeClosingTag } from "@/utility-processes/domain-worker/utils/remove-closing-tag.js";
+import { AskController } from "../user-interaction/ask-controller.js";
 
-export function handleAttemptCompletionBlock(
+export async function handleAttemptCompletionBlock(
   block: ToolUse,
-  viewState: ViewState
+  viewState: ViewState,
+  askController: AskController
 ) {
   if (block.name !== "attempt_completion") {
     throw new Error("Invalid block name");
@@ -35,6 +37,8 @@ export function handleAttemptCompletionBlock(
         },
         viewState
       );
+      const answer = await askController.ask("completion_result", "", false);
+      console.log("answer", answer);
     }
   } catch (error) {
     console.error("Error attempting completion", error);

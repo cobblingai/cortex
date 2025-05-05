@@ -1,7 +1,5 @@
 import { Logger } from "@/main/utils/logger.js";
-import { ipcChannels } from "@/shared/ipc-channels.js";
-import { ViewMessage } from "@/types/view-message.js";
-import { UtilityProcess, webContents, WebContents } from "electron";
+import { UtilityProcess } from "electron";
 
 export function registerStdoutStderrEvents(
   domainWorker: UtilityProcess,

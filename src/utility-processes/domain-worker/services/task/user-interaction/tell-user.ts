@@ -1,6 +1,9 @@
 import { TellType } from "@/types/chat.js";
-import { ViewState } from "../../view-state/index.js";
-
+import { ViewState } from "../../../ui/view-state.js";
+import {
+  postPartialUIMessage,
+  postStateToView,
+} from "../../../ui/view-bridge.js";
 export function tellUser(
   message: {
     type: TellType;
@@ -25,7 +28,7 @@ export function tellUser(
     if (isUpdatingLastUIMessage) {
       // update the last message
       lastUIMessage.content = message.text;
-      viewState.postPartialUIMessage(lastUIMessage);
+      postPartialUIMessage(lastUIMessage);
     } else {
       // this is a new message, so we need to add it to the view state
       viewState.addUIMessage({
@@ -35,14 +38,14 @@ export function tellUser(
         content: message.text,
         isPartial: true,
       });
-      viewState.postStateToView();
+      postStateToView(viewState);
     }
   } else {
     if (isUpdatingLastUIMessage) {
       // update the last message
       lastUIMessage.content = message.text;
       lastUIMessage.isPartial = false;
-      viewState.postPartialUIMessage(lastUIMessage);
+      postPartialUIMessage(lastUIMessage);
     } else {
       viewState.addUIMessage({
         id: crypto.randomUUID(),
@@ -50,7 +53,7 @@ export function tellUser(
         tellType: message.type,
         content: message.text,
       });
-      viewState.postStateToView();
+      postStateToView(viewState);
     }
   }
 }
@@ -68,5 +71,5 @@ function tellUserNormalMessage(
     tellType: message.type,
     content: message.text,
   });
-  viewState.postStateToView();
+  postStateToView(viewState);
 }

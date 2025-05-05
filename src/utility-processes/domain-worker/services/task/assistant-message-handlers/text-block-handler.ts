@@ -1,6 +1,6 @@
 import { TextContent } from "@/types/assistant-message/index.js";
-import { ViewState } from "@/utility-processes/domain-worker/view-state/index.js";
-import { tellUser } from "../tell-user.js";
+import { ViewState } from "@/utility-processes/domain-worker/ui/view-state.js";
+import { tellUser } from "../user-interaction/tell-user.js";
 
 export function handleTextBlock(block: TextContent, viewState: ViewState) {
   let content = block.content;

@@ -2,21 +2,16 @@ import { ApiHandler, ApiProvider } from "@/types/api/index.js";
 import { buildApiHandler } from "@/utility-processes/domain-worker/api/index.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { AIState } from "../../ai-state/index.js";
-import { ViewState } from "../../view-state/index.js";
-import { ViewMessage } from "@/types/view-message.js";
+import { ViewState } from "../../ui/view-state.js";
 import { SYSTEM_PROMPT } from "../../prompts/system.js";
 import { AsyncQueue } from "../../utils/async-queue.js";
 import { AssistantMessageContentBlock } from "@/types/assistant-message/index.js";
 import { runBlockProducer } from "./block-producer.js";
-import { TellType } from "@/types/chat.js";
-import { handleTextBlock } from "./assistant-message-handlers/text-block-handler.js";
-import { handleToolUseBlock } from "./assistant-message-handlers/too-use-block-handler.js";
-import cloneDeep from "clone-deep";
-import { ApiStreamChunk } from "@/types/api/transform/stream.js";
-import { parseAssistantMessage } from "./parser.js";
 import { formatResponse } from "../../prompts/responses.js";
 import { runBlockConsumer } from "./block-consumer.js";
-import { tellUser } from "./tell-user.js";
+import { tellUser } from "./user-interaction/tell-user.js";
+import { postStateToView } from "../../ui/index.js";
+import { AskController } from "./user-interaction/ask-controller.js";
 
 type UserContentBlock = Anthropic.TextBlockParam | Anthropic.ImageBlockParam;
 
@@ -28,6 +23,8 @@ export class Task {
   private userMessageContent: UserContentBlock[] = [];
   private apiHandler: ApiHandler;
   private readonly aiState: AIState;
+  private readonly postStateToView: (state: ViewState) => void;
+  private readonly askController: AskController;
 
   constructor(
     public status: "initialized" | "running" | "completed" | "failed",
@@ -36,8 +33,7 @@ export class Task {
       model: string;
       apiKey: string;
       apiProvider: ApiProvider;
-    },
-    private readonly postMessageToView: (message: ViewMessage) => void
+    }
   ) {
     if (text) {
       this.id = crypto.randomUUID();
@@ -48,8 +44,12 @@ export class Task {
       apiKey: this.context.apiKey,
       apiModelId: this.context.model,
     });
-    this.viewState = new ViewState(this.postMessageToView);
+    this.viewState = new ViewState();
     this.aiState = new AIState();
+    this.askController = new AskController(this.viewState);
+    this.postStateToView = (state: ViewState) => {
+      return postStateToView(state);
+    };
   }
 
   public abort() {
@@ -67,7 +67,7 @@ export class Task {
     this.aiState.clear();
     this.viewState.clear();
 
-    this.viewState.postStateToView();
+    this.postStateToView(this.viewState);
     tellUser(
       {
         type: "text",
@@ -114,9 +114,14 @@ export class Task {
         text: this.getEnvironmentDetails(),
       });
 
+      console.log(
+        `nextUserContentBlocks: ${JSON.stringify(nextUserContentBlocks, null, 2)}`
+      );
+
       // 1) Send API request and stream response
       this.userMessageContent = [];
       let didReceiveAnyContent = false;
+      let didUseTool = false;
       this.aiState.addMessage({
         role: "user",
         content: nextUserContentBlocks,
@@ -124,17 +129,19 @@ export class Task {
 
       const queue = new AsyncQueue<AssistantMessageContentBlock>();
       queue.registerConsumer((block) =>
-        runBlockConsumer(block, this.viewState)
+        runBlockConsumer(block, this.viewState, this.askController)
       );
 
       try {
         const stream = this.startApiStream(this.aiState.getMessages());
         // Producer: parses every text chunk into blocks (including partials)
-        didReceiveAnyContent = await runBlockProducer(stream, queue);
+        const streamResult = await runBlockProducer(stream, queue);
+        didReceiveAnyContent = streamResult.didReceiveAnyContent;
+        didUseTool = streamResult.didUseTool;
       } catch (error) {
         console.error("[Task] error running agentic loop:", error);
         this.status = "failed";
-        this.viewState.postStateToView();
+        this.postStateToView(this.viewState);
         return true;
       }
 
@@ -145,6 +152,13 @@ export class Task {
 
       // 3) Wait until all assistant content has been presented
       await queue.onIdle();
+
+      if (!didUseTool) {
+        this.userMessageContent.push({
+          type: "text",
+          text: formatResponse.noToolsUsed(),
+        });
+      }
 
       nextUserContentBlocks = this.userMessageContent;
     }

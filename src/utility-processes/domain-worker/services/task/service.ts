@@ -1,13 +1,15 @@
 import { NewTaskMessage } from "@/types/controller-message.js";
 import { Task } from "./entity.js";
 import { ViewMessage } from "@/types/view-message.js";
+import { ViewState } from "../../ui/view-state.js";
+import { postStateToView } from "../../ui/index.js";
 
 let currentTask: Task | null = null;
 
 export async function newTask(message: NewTaskMessage) {
-  console.log("newTask", message);
+  console.log("[Task] newTask", message);
   if (currentTask) {
-    console.log("aborting previous task:", currentTask.id);
+    console.log("[Task] aborting previous task:", currentTask.id);
     currentTask.abort();
     currentTask = null;
   }
@@ -15,10 +17,7 @@ export async function newTask(message: NewTaskMessage) {
   currentTask = new Task(
     "initialized",
     message.payload.text,
-    message.payload.context,
-    (message: ViewMessage) => {
-      process.parentPort.postMessage(message);
-    }
+    message.payload.context
   );
   currentTask.start();
 
@@ -29,9 +28,10 @@ export async function newTask(message: NewTaskMessage) {
 }
 
 export async function abort() {
-  console.log("abort");
+  console.log("[Task] abort");
   if (currentTask) {
     currentTask.abort();
     currentTask = null;
+    postStateToView(new ViewState());
   }
 }

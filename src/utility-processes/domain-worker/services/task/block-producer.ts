@@ -13,18 +13,19 @@ export async function runBlockProducer(
   queue: AsyncQueue<AssistantMessageContentBlock>
 ) {
   let buffer = "";
+  let blocks: AssistantMessageContentBlock[] = [];
 
   for await (const chunk of stream) {
     if (chunk.type !== "text") continue;
     buffer += chunk.text;
     // re-parse entire conversation so far
-    const blocks = parseAssistantMessage(buffer);
+    blocks = parseAssistantMessage(buffer);
 
     queue.replace(blocks);
   }
 
   // when stream closes, re-emit any final block updates
-  const finalBlocks = parseAssistantMessage(buffer).map((b) => ({
+  const finalBlocks = blocks.map((b) => ({
     ...b,
     partial: false,
   }));
@@ -32,5 +33,8 @@ export async function runBlockProducer(
 
   queue.end();
 
-  return buffer.length > 0;
+  return {
+    didReceiveAnyContent: buffer.length > 0,
+    didUseTool: blocks.some((b) => b.type === "tool_use"),
+  };
 }

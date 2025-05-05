@@ -2,7 +2,7 @@ import { z } from "zod";
 import { uiMessageSchema } from "./chat.js";
 
 export const appStateSchema = z.object({
-  uiMessages: z.array(uiMessageSchema),
+  uiMessages: z.array(uiMessageSchema).readonly(),
 });
 
 export const viewMessageSchema = z.union([
@@ -32,12 +32,19 @@ export const viewMessageSchema = z.union([
   }),
 ]);
 
-export const askQuestionSchema = z.object({
+export const questionSchema = z.object({
   question: z.string(),
   options: z.array(z.string()),
   selected: z.string().optional(),
 });
 
+export const answerSchema = z.enum([
+  "yesButtonClicked",
+  "noButtonClicked",
+  "messageResponse",
+]);
+
 export type AppState = z.infer<typeof appStateSchema>;
 export type ViewMessage = z.infer<typeof viewMessageSchema>;
-export type AskQuestion = z.infer<typeof askQuestionSchema>;
+export type Question = z.infer<typeof questionSchema>;
+export type Answer = z.infer<typeof answerSchema>;

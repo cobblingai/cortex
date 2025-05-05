@@ -46,17 +46,19 @@ const ImageMessage: React.FC<{ content: string }> = ({ content }) => {
 /**
  * Renders an ask message based on its type
  */
-const AskMessage: React.FC<{ type: AskType; content: string }> = ({
+const AskMessage: React.FC<{ type: AskType; content: string | undefined }> = ({
   type,
   content,
 }) => {
   switch (type) {
     case "followup":
-      return <FollowupMessage content={content} />;
+      return <FollowupMessage content={content || ""} />;
     case "text":
-      return <TextMessage content={content} />;
+      return <TextMessage content={content || ""} />;
     case "image":
-      return <ImageMessage content={content} />;
+      return <ImageMessage content={content || ""} />;
+    case "completion_result":
+      return <TextMessage content={content || ""} />;
     default:
       console.warn(`Unhandled ask type: ${type}`);
       return <MessageContainer>{renderContent(content)}</MessageContainer>;
